@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1081477819784",
+    "project_id": "mihnati3",
+    "storage_bucket": "mihnati3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1081477819784:android:69b938eda125b213331e3d",
+        "android_client_info": {
+          "package_name": "com.example.mihnati2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7UT9vwuvyqwvL-2MbJVFsRoqJhB3ofdo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
