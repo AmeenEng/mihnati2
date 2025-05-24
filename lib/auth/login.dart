@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -34,7 +35,7 @@ class _LoginState extends State<Login> {
               ),
               SizedBox(height: 20),
               Text(
-                "تسجيل الدخول",
+                context.tr("login"),
                 style: TextStyle(
                   fontSize: 32,
                   color: Colors.black87,
@@ -53,7 +54,7 @@ class _LoginState extends State<Login> {
                 decoration: InputDecoration(
                   hintText: "ادخل الايميل",
                   // make direction to right
-                  hintTextDirection: TextDirection.rtl,
+                  // hintTextDirection: TextDirection.rtl,
                   hintStyle: TextStyle(
                     color: Colors.grey[400],
                   ),
@@ -69,9 +70,9 @@ class _LoginState extends State<Login> {
               SizedBox(height: 10),
               TextField(
                 decoration: InputDecoration(
-                  hintText: "ادخل الباسوورد",
+                  hintText: context.tr("enterPassword"),
                   // make direction to right
-                  hintTextDirection: TextDirection.rtl,
+                  // hintTextDirection: TextDirection.rtl,
                   hintStyle: TextStyle(
                     color: Colors.grey[400],
                   ),
