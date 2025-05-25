@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:mihnati2/Onboarding/onboarding_view.dart';
-import 'package:mihnati2/auth/login.dart';
+import 'package:mihnati2/auth/login/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: MaterialApp(
+      child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
@@ -41,7 +42,7 @@ class MyApp extends StatelessWidget {
               );
             } else {
               final isCompleted = snapshot.data ?? false;
-              return isCompleted ? Login() : OnboardingView();
+              return isCompleted ? LoginScreen() : OnboardingView();
             }
           },
         ),

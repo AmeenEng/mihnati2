@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mihnati2/Components/color.dart';
 import 'package:mihnati2/Onboarding/onboarding_items.dart';
-import 'package:mihnati2/auth/login.dart';
+import 'package:mihnati2/auth/login/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -133,7 +133,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => Login(),
+                builder: (context) => LoginScreen(),
               ));
         },
         child: Text(
