@@ -1,12 +1,12 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginModel {
-  final String username;
+  final String email;
   final String password;
   final bool rememberMe;
 
   const LoginModel({
-    required this.username,
+    required this.email,
     required this.password,
     this.rememberMe = false,
   });

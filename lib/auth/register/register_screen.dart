@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mihnati2/auth/login/login_screen.dart';
+import 'package:mihnati2/home.dart';
 import 'register_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final success = await _controller.handleRegister();
     if (success) {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/Login');
+        Get.off(Home());
       }
     } else {
       setState(() {});
@@ -42,10 +43,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                  child: Image.asset(
-                "assets/image/auth-Image/Sign up-bro.png",
-                width: 300,
-              )),
+                child: Image.asset(
+                  "assets/image/auth-Image/Sign up-bro.png",
+                  width: 300,
+                ),
+              ),
               Text(
                 tr("signUp"),
                 style: TextStyle(
@@ -55,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               Text(
-                tr("loginSubtitle"),
+                tr("signUpSubtitle"),
                 style: TextStyle(
                   color: Color(0xFF1F3440),
                 ),
@@ -70,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     filled: true,
                     fillColor: const Color(0xFFD4DADD),
                     prefixIcon: const Icon(Icons.person),
-                    hintText: tr("Email"),
+                    hintText: tr("userName"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: BorderSide.none,
@@ -83,13 +85,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: double.infinity,
                 height: 50,
                 child: TextFormField(
-                  controller: _controller.mobileController,
-                  keyboardType: TextInputType.phone,
+                  controller: _controller.emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: const Color(0xFFD4DADD),
-                    prefixIcon: const Icon(Icons.phone_outlined),
-                    hintText: tr("mobileNumber"),
+                    prefixIcon: const Icon(Icons.email),
+                    hintText: tr("email"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: BorderSide.none,
@@ -116,11 +118,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _controller.showpassword();
+                          _controller.showPassword();
                         });
                       },
                     ),
                     hintText: tr("password"),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: TextFormField(
+                  controller: _controller.confirmPasswordController,
+                  obscureText: _controller.confirmSecure,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFFD4DADD),
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _controller.confirmSecure
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _controller.showConfirmPassword();
+                        });
+                      },
+                    ),
+                    hintText: tr("confirmPassword"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: BorderSide.none,
@@ -137,24 +170,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     Text(tr("rememberMe")),
-              //     Switch(
-              //       activeColor: const Color(0xFF70797E),
-              //       activeTrackColor: const Color(0xFF1F3440),
-              //       inactiveThumbColor: const Color(0xFFBABDBE),
-              //       inactiveTrackColor: const Color(0xFFD9E2E6),
-              //       value: _controller.rememberMe,
-              //       onChanged: (value) {
-              //         setState(() {
-              //           _controller.rememberMethod(value);
-              //         });
-              //       },
-              //     )
-              //   ],
-              // ),
               const SizedBox(height: 8),
               MaterialButton(
                 color: const Color(0xFF1F3440),
@@ -163,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
-                onPressed: () {},
+                onPressed: _handleRegister,
                 child: Text(
                   tr("registerButton"),
                   style: TextStyle(
@@ -179,12 +194,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
-                onPressed: _handleRegister,
+                onPressed: () {
+                  // TODO: Implement Google Sign In
+                },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      tr("Login with Google"),
+                      tr("SignUp with Google"),
                       style: TextStyle(
                         color: Colors.white,
                       ),
@@ -201,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(tr("noAccount")),
+                  Text(tr("haveAccount")),
                   GestureDetector(
                     child: Text(
                       tr("login"),

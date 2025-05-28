@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mihnati2/auth/register/register_screen.dart';
+import 'package:mihnati2/home.dart';
 import 'login_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final success = await _controller.handleLogin();
     if (success) {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Get.off(Home());
       }
     } else {
       setState(() {});
@@ -66,12 +67,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 50,
                 child: TextFormField(
-                  controller: _controller.usernameController,
+                  controller: _controller.emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: const Color(0xFFD4DADD),
-                    prefixIcon: const Icon(Icons.person),
-                    hintText: tr("username"),
+                    prefixIcon: const Icon(Icons.email),
+                    hintText: tr("email"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: BorderSide.none,
@@ -120,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 onTap: () {
-                  // print("Hi");
+                  // TODO: Implement forgot password
                 },
               ),
               const SizedBox(height: 10),
@@ -174,7 +176,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  // TODO: Implement Google Sign In
+                },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

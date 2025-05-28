@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'login_model.dart';
 
 class LoginController {
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool secure = true;
   bool rememberMe = false;
@@ -18,26 +18,47 @@ class LoginController {
   }
 
   Future<bool> handleLogin() async {
-    final username = usernameController.text;
+    final email = emailController.text.trim();
     final password = passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       error = tr("fillAllFields");
       return false;
     }
 
-    final isValid = await LoginModel.validateCredentials(username, password);
-    if (!isValid) {
-      error = tr("invalidCredentials");
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      error = '';
+      return true;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'user-not-found':
+          error = tr("noUserFound");
+          break;
+        case 'wrong-password':
+          error = tr("wrongPassword");
+          break;
+        case 'invalid-email':
+          error = tr("invalidEmail");
+          break;
+        case 'user-disabled':
+          error = tr("userDisabled");
+          break;
+        default:
+          error = tr("loginError");
+      }
+      return false;
+    } catch (e) {
+      error = tr("loginError");
       return false;
     }
-
-    error = '';
-    return true;
   }
 
   void dispose() {
-    usernameController.dispose();
+    emailController.dispose();
     passwordController.dispose();
   }
 }
