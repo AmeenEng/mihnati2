@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     filled: true,
                     fillColor: const Color(0xFFD4DADD),
                     prefixIcon: const Icon(Icons.person),
-                    hintText: tr("username"),
+                    hintText: tr("Email"),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: BorderSide.none,
@@ -163,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
-                onPressed: _handleRegister,
+                onPressed: () {},
                 child: Text(
                   tr("registerButton"),
                   style: TextStyle(
