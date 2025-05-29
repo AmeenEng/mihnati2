@@ -1,64 +1,36 @@
-import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mihnati2/auth/firebase_auth_methods.dart';
+import 'package:provider/provider.dart';
 
 class LoginController {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool secure = true;
-  bool rememberMe = false;
-  String error = '';
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  String errorCode = '';
 
-  void showpassword() {
-    secure = !secure;
-  }
-
-  void rememberMethod(bool value) {
-    rememberMe = value;
-  }
-
-  Future<bool> handleLogin() async {
+  Future<bool> handleLogin(BuildContext context) async {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      error = tr("fillAllFields");
+      errorCode = 'fillAllFields';
       return false;
     }
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final authMethods = context.read<FirebaseAuthMethods>();
+      await authMethods.loginWithEmail(
         email: email,
         password: password,
+        context: context, username: '',
       );
-      error = '';
       return true;
     } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'user-not-found':
-          error = tr("noUserFound");
-          break;
-        case 'wrong-password':
-          error = tr("wrongPassword");
-          break;
-        case 'invalid-email':
-          error = tr("invalidEmail");
-          break;
-        case 'user-disabled':
-          error = tr("userDisabled");
-          break;
-        default:
-          error = tr("loginError");
-      }
+      errorCode = e.code;
       return false;
     } catch (e) {
-      error = tr("loginError");
+      errorCode = 'loginError';
       return false;
     }
-  }
-
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
   }
 }

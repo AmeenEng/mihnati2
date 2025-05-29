@@ -1,8 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mihnati2/auth/firebase_auth_methods.dart';
 import 'package:mihnati2/auth/login/login_screen.dart';
+import 'package:mihnati2/auth/verify_email_screen.dart';
 import 'package:mihnati2/home.dart';
+import 'package:provider/provider.dart';
 import 'register_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -22,9 +25,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    final success = await _controller.handleRegister();
+    final success = await _controller.handleRegister(context);
     if (success) {
-      if (mounted) {
+      final user = context.read<FirebaseAuthMethods>().currentUser;
+      if (user != null && !user.emailVerified) {
+        Get.to(const VerifyEmailScreen());
+      } else {
         Get.off(Home());
       }
     } else {

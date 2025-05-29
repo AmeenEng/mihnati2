@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mihnati2/auth/firebase_auth_methods.dart';
+import 'package:provider/provider.dart';
 
 class RegisterController {
   final TextEditingController usernameController = TextEditingController();
@@ -29,7 +31,7 @@ class RegisterController {
     return password.length >= 6;
   }
 
-  Future<bool> handleRegister() async {
+  Future<bool> handleRegister(BuildContext context) async {
     final username = usernameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
@@ -59,17 +61,16 @@ class RegisterController {
     }
 
     try {
-      // Create user with email and password
-      final userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final authMethods = context.read<FirebaseAuthMethods>();
+      await authMethods.signUpWithEmail(
         email: email,
         password: password,
+        context: context, username: '',
       );
 
-      // Update the user's display name
-      await userCredential.user?.updateDisplayName(username);
+      // تحديث اسم المستخدم
+      await authMethods.currentUser?.updateDisplayName(username);
 
-      error = '';
       return true;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
