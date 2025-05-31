@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mihnati2/screens/auth/verify_email_screen.dart';
+import 'package:mihnati2/screens/home/home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../auth/auth_provider.dart';
 
@@ -41,7 +42,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               context: context,
             );
         if (mounted) {
-          Get.off(VerifyEmailScreen());
+          final user = context.read<AuthProvider>().user;
+          if (user?.emailVerified == false) {
+            Get.offAll(() => const VerifyEmailScreen());
+          } else {
+            Get.offAll(() => const HomeScreen());
+          }
         }
       } catch (e) {
         if (mounted) {

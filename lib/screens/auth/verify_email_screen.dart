@@ -19,48 +19,52 @@ class VerifyEmailScreen extends StatelessWidget {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(tr('verifyEmail')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              authProvider.signOut();
-              Get.offAll(const LoginScreen());
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              tr('verifyEmailMessage', args: [user.email ?? '']),
-              style: const TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () async {
-                await authProvider.sendEmailVerification(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(tr('verificationEmailSent'))),
-                );
-              },
-              child: Text(tr('resendVerification')),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(tr('verifyEmail')),
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
               onPressed: () {
                 authProvider.signOut();
                 Get.offAll(const LoginScreen());
               },
-              child: Text(tr('signOut')),
             ),
           ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                tr('verifyEmailMessage', args: [user.email ?? '']),
+                style: const TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () async {
+                  await authProvider.sendEmailVerification(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(tr('verificationEmailSent'))),
+                  );
+                },
+                child: Text(tr('resendVerification')),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  authProvider.signOut();
+                  Get.offAll(const LoginScreen());
+                },
+                child: Text(tr('signOut')),
+              ),
+            ],
+          ),
         ),
       ),
     );

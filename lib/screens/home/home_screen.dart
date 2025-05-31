@@ -1,13 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import '../../auth/auth_provider.dart';
+import '../auth/verify_email_screen.dart';
+import '../auth/login_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    // تأجيل التحقق والتنقل بعد انتهاء بناء الواجهة
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkEmailVerification();
+    });
+  }
+
+  Future<void> _checkEmailVerification() async {
+    final user = context.read<AuthProvider>().user;
+    if (user?.emailVerified == false) {
+      Get.offAll(() => const VerifyEmailScreen());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
 
     return Scaffold(
       appBar: AppBar(
@@ -15,16 +41,9 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              try {
-                await context.read<AuthProvider>().signOut();
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
-                  );
-                }
-              }
+            onPressed: () {
+              authProvider.signOut();
+              Get.offAll(const LoginScreen());
             },
           ),
         ],
@@ -52,14 +71,22 @@ class HomeScreen extends StatelessWidget {
                       'Please verify your email address',
                       style: TextStyle(color: Colors.red),
                     ),
-                    TextButton(
+                    const SizedBox(height: 8),
+                    ElevatedButton(
                       onPressed: () async {
                         try {
                           await context
                               .read<AuthProvider>()
                               .sendEmailVerification(context);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Verification email sent!'),
+                              ),
+                            );
+                          }
                         } catch (e) {
-                          if (context.mounted) {
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(e.toString())),
                             );

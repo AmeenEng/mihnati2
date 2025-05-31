@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../auth/auth_provider.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import 'package:get/get.dart';
+import 'verify_email_screen.dart';
+import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,6 +39,14 @@ class _LoginScreenState extends State<LoginScreen> {
               username: _usernameController.text.trim(),
               context: context,
             );
+        if (mounted) {
+          final user = context.read<AuthProvider>().user;
+          if (user?.emailVerified == false) {
+            Get.offAll(() => const VerifyEmailScreen());
+          } else {
+            Get.offAll(() => const HomeScreen());
+          }
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
