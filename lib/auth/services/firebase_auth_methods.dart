@@ -34,7 +34,7 @@ class FirebaseAuthMethods extends ChangeNotifier {
           const SnackBar(content: Text('Verification email sent!')),
         );
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
@@ -57,7 +57,7 @@ class FirebaseAuthMethods extends ChangeNotifier {
           userCredential.user?.displayName?.isEmpty == true) {
         await userCredential.user?.updateDisplayName(username);
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
@@ -103,7 +103,7 @@ class FirebaseAuthMethods extends ChangeNotifier {
           const SnackBar(content: Text('Password reset email sent!')),
         );
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
@@ -112,7 +112,7 @@ class FirebaseAuthMethods extends ChangeNotifier {
   Future<void> deleteAccount() async {
     try {
       await _auth.currentUser?.delete();
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
@@ -126,7 +126,7 @@ class FirebaseAuthMethods extends ChangeNotifier {
           const SnackBar(content: Text('Verification email sent!')),
         );
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mihnati2/auth/services/firebase_auth_methods.dart';
+import '../services/firebase_auth_methods.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuthMethods _authMethods = FirebaseAuthMethods();

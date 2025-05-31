@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mihnati2/Components/color.dart';
 import 'package:mihnati2/Onboarding/onboarding_items.dart';
-import 'package:mihnati2/auth/login/login_screen.dart';
+import 'package:mihnati2/screens/auth/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 

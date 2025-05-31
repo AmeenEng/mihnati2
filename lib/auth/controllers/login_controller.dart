@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mihnati2/auth/firebase_auth_methods.dart';
+import 'package:mihnati2/auth/services/firebase_auth_methods.dart';
 import 'package:provider/provider.dart';
 
 class LoginController {
@@ -22,7 +22,8 @@ class LoginController {
       await authMethods.loginWithEmail(
         email: email,
         password: password,
-        context: context, username: '',
+        context: context,
+        username: '',
       );
       return true;
     } on FirebaseAuthException catch (e) {

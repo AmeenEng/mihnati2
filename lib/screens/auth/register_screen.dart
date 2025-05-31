@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Center(
                   child: Image.asset(
                     "assets/image/auth-Image/Sign up-bro.png",
-                    width: 300,
+                    width: 270,
                   ),
                 ),
                 const Text(

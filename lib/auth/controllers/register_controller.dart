@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:mihnati2/auth/firebase_auth_methods.dart';
+import 'package:mihnati2/auth/services/firebase_auth_methods.dart';
 import 'package:provider/provider.dart';
 
 class RegisterController {

@@ -27,6 +27,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               context: context,
             );
         if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    "تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني")),
+          );
           Navigator.pop(context);
         }
       } catch (e) {
@@ -42,42 +47,52 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reset Password'),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Forgot Password?',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 50),
+                Center(
+                  child: Image.asset(
+                    "assets/image/auth-Image/Forgot password-rafiki.png",
+                    width: 300,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Enter your email address and we will send you a link to reset your password.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey,
-                    ),
+                ),
+                const Text(
+                  'Forgot Password',
+                  style: TextStyle(
+                    fontSize: 35,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F3440),
                   ),
-                  const SizedBox(height: 32),
-                  TextFormField(
+                ),
+                const Text(
+                  'Enter your email to receive a password reset link.',
+                  style: TextStyle(
+                    color: Color(0xFF1F3440),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFD4DADD),
+                      prefixIcon: const Icon(Icons.email),
+                      hintText: 'Email',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -89,23 +104,42 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _resetPassword,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                const SizedBox(height: 20),
+                MaterialButton(
+                  color: const Color(0xFF1F3440),
+                  minWidth: double.infinity,
+                  height: 50,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  onPressed: _resetPassword,
+                  child: const Text(
+                    'Send Reset Link',
+                    style: TextStyle(
+                      color: Colors.white,
                     ),
-                    child: const Text('Send Reset Link'),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Back to Login'),
+                ),
+                const SizedBox(height: 15),
+                MaterialButton(
+                  color: const Color(0xFF1F3440),
+                  minWidth: double.infinity,
+                  height: 50,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
                   ),
-                ],
-              ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Back to Login',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mihnati2/auth/firebase_auth_methods.dart';
-import 'package:mihnati2/auth/login/login_screen.dart';
+import 'package:mihnati2/auth/services/firebase_auth_methods.dart';
+import 'package:mihnati2/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 
 class VerifyEmailScreen extends StatelessWidget {
