@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mihnati2/auth/services/firebase_auth_methods.dart';
+import 'package:mihnati2/auth/auth_provider.dart';
 import 'package:mihnati2/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -10,8 +10,14 @@ class VerifyEmailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authMethods = context.read<FirebaseAuthMethods>();
-    final user = authMethods.currentUser;
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user == null) {
+      return Scaffold(
+        body: Center(child: Text(tr('noUserFound'))),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -20,7 +26,7 @@ class VerifyEmailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              authMethods.signOut();
+              authProvider.signOut();
               Get.offAll(const LoginScreen());
             },
           ),
@@ -32,19 +38,24 @@ class VerifyEmailScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              tr('verifyEmailMessage', args: [user?.email ?? '']),
+              tr('verifyEmailMessage', args: [user.email ?? '']),
               style: const TextStyle(fontSize: 18),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () => authMethods.sendEmailVerification(context),
+              onPressed: () async {
+                await authProvider.sendEmailVerification(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(tr('verificationEmailSent'))),
+                );
+              },
               child: Text(tr('resendVerification')),
             ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                authMethods.signOut();
+                authProvider.signOut();
                 Get.offAll(const LoginScreen());
               },
               child: Text(tr('signOut')),

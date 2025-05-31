@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mihnati2/screens/auth/verify_email_screen.dart';
 import 'package:provider/provider.dart';
 import '../../auth/auth_provider.dart';
 
@@ -39,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               context: context,
             );
         if (mounted) {
-          Navigator.pop(context);
+          Get.off(VerifyEmailScreen());
         }
       } catch (e) {
         if (mounted) {

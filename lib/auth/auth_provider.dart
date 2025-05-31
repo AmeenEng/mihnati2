@@ -1,3 +1,5 @@
+import 'dart:async'; // ⬅️ جديد
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mihnati2/auth/services/firebase_auth_methods.dart';
@@ -6,6 +8,7 @@ class AuthProvider extends ChangeNotifier {
   final FirebaseAuthMethods _authMethods = FirebaseAuthMethods();
   User? _user;
   bool _isLoading = false;
+  late final StreamSubscription<User?> _authSubscription; // ⬅️ جديد
 
   AuthProvider() {
     _init();
@@ -16,10 +19,16 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
 
   void _init() {
-    _authMethods.authStateChanges.listen((User? user) {
+    _authSubscription = _authMethods.authStateChanges.listen((User? user) {
       _user = user;
       notifyListeners();
     });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel(); // ⬅️ تنظيف الذاكرة
+    super.dispose();
   }
 
   Future<void> signUp({
