@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firebase_auth_methods.dart';
 
-class AuthProvider extends ChangeNotifier {
+class AuthProvider2 extends ChangeNotifier {
   final FirebaseAuthMethods _authMethods = FirebaseAuthMethods();
   User? _user;
   bool _isLoading = false;
 
-  AuthProvider() {
+  AuthProvider2() {
     _init();
   }
 

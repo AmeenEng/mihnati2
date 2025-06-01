@@ -73,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Center(
                   child: Image.asset(
-                    "assets/image/auth-Image/Sign up-bro.png",
+                    "assets/image/auth-Image/Sign up-amico.png",
                     width: 270,
                   ),
                 ),
