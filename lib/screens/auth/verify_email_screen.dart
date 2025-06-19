@@ -2,11 +2,10 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:mihnati2/auth/auth_provider.dart';
-import 'package:mihnati2/screens/auth/login_screen.dart';
+import 'package:mihnati2/auth/providers/auth_provider.dart';
+import 'package:mihnati2/screens/auth/CompleteProfileScreen.dart';
 import 'package:mihnati2/screens/home/home_screen.dart';
-import 'package:provider/provider.dart';
+import 'package:mihnati2/screens/auth/login_screen.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
   const VerifyEmailScreen({super.key});
@@ -16,16 +15,18 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
-  bool _isChecking = false;
+  final AuthProvider2 authProvider = Get.find<AuthProvider2>();
   Timer? _verificationTimer;
-  bool _isDarkMode = false;
+  bool _isResending = false;
+  bool _isChecking = false;
+  int _checkAttempts = 0;
+  final int _maxCheckAttempts = 12; // دقيقة واحدة كحد أقصى (12 × 5 ثواني)
 
   @override
   void initState() {
     super.initState();
-    _verificationTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      _checkEmailVerification();
-    });
+    _sendInitialVerification();
+    _startVerificationCheck();
   }
 
   @override
@@ -34,193 +35,177 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     super.dispose();
   }
 
-  Future<void> _checkEmailVerification() async {
+  void _setStateSafe(VoidCallback fn) {
     if (!mounted) return;
-
-    setState(() {
-      _isChecking = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(fn);
     });
+  }
 
-    try {
-      await firebase_auth.FirebaseAuth.instance.currentUser?.reload();
-      final user = firebase_auth.FirebaseAuth.instance.currentUser;
+  void _startVerificationCheck() {
+    _verificationTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted || _checkAttempts >= _maxCheckAttempts) {
+        timer.cancel();
+        return;
+      }
+      _checkAttempts++;
+      _checkVerificationStatus();
+    });
+  }
 
-      if (user?.emailVerified == true) {
-        _verificationTimer?.cancel();
-        context.read<AuthProvider>().setUser(user!);
-        Get.off(() => const HomeScreen());
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isChecking = false;
-        });
+  Future<void> _sendInitialVerification() async {
+    final user = authProvider.user;
+    if (user != null && !user.emailVerified) {
+      _setStateSafe(() => _isResending = true);
+      try {
+        await authProvider.sendEmailVerification();
+      } finally {
+        _setStateSafe(() => _isResending = false);
       }
     }
   }
 
-  void _toggleTheme() {
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-    });
+  Future<void> _checkVerificationStatus() async {
+    if (_isChecking || !mounted) return;
 
-    Get.changeThemeMode(_isDarkMode ? ThemeMode.dark : ThemeMode.light);
+    _setStateSafe(() => _isChecking = true);
+
+    try {
+      await authProvider.user?.reload(); // تحديث بيانات المستخدم
+      await authProvider.checkEmailVerification();
+
+      if (authProvider.user?.emailVerified ?? false) {
+        _verificationTimer?.cancel();
+        // الانتقال إلى شاشة إكمال الملف الشخصي
+        Get.offAll(() => const CompleteProfileScreen());
+      }
+    } catch (e) {
+      debugPrint('Verification check failed: $e');
+    } finally {
+      _setStateSafe(() => _isChecking = false);
+    }
   }
 
-  void _changeLanguage() {
-    final currentLocale = context.locale;
-    if (currentLocale.languageCode == 'ar') {
-      context.setLocale(const Locale('en'));
-    } else {
-      context.setLocale(const Locale('ar'));
+  Future<void> _resendVerification() async {
+    _setStateSafe(() => _isResending = true);
+
+    try {
+      await authProvider.sendEmailVerification();
+      Get.snackbar(
+        tr('success'),
+        tr('verificationEmailSent'),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        tr('error'),
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      _setStateSafe(() => _isResending = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.read<AuthProvider>();
     final user = authProvider.user;
 
     if (user == null) {
       return Scaffold(
-        body: Center(
-          child: Text(tr('noUserFound'),
-              style: const TextStyle(fontSize: 18, color: Color(0xFF1F3440))),
-        ),
+        body: Center(child: Text(tr('noUserFound'))),
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF1F3440),
-          title: Text(tr('verifyEmail')),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(tr('verifyEmail')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              authProvider.signOut();
+              Get.offAll(const LoginScreen());
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.mark_email_unread_outlined,
+              size: 100,
+              color: Theme.of(context).primaryColor,
+            ),
+            const SizedBox(height: 30),
+            Text(
+              tr('verifyEmailMessage', args: [user.email ?? '']),
+              style: const TextStyle(fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            if (_isChecking)
+              Column(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 20),
+                  Text(tr('checkingVerification')),
+                ],
+              ),
+            const SizedBox(height: 30),
+            ElevatedButton.icon(
+              icon: _isResending
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(Icons.email_outlined),
+              label: Text(
+                  _isResending ? tr('resending') : tr('resendVerification')),
+              onPressed: _isResending ? null : _resendVerification,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextButton(
               onPressed: () {
-                _verificationTimer?.cancel();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _checkVerificationStatus();
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(tr('checkManually')),
+                  if (_isChecking)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 10),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton(
+              onPressed: () {
                 authProvider.signOut();
                 Get.offAll(const LoginScreen());
               },
-              tooltip: tr('signOut'),
-            ),
-            IconButton(
-              icon: const Icon(Icons.language),
-              onPressed: _changeLanguage,
-              tooltip: tr('changeLanguage'),
-            ),
-            IconButton(
-              icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
-              onPressed: _toggleTheme,
-              tooltip: tr('toggleTheme'),
+              child: Text(tr('signOut')),
             ),
           ],
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: Image.asset(
-                  "assets/image/auth-Image/Mail sent-amico.png",
-                  width: 300,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                tr('verifyEmailMessage', args: [user.email ?? '']),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1F3440),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isChecking ? null : _checkEmailVerification,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F3440),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: _isChecking
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          tr('checkVerification'),
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.white),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 15),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await authProvider.sendEmailVerification(context);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(tr('verificationEmailSent'))),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F3440),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: Text(
-                    tr('resendVerification'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: () {
-                  _verificationTimer?.cancel();
-                  authProvider.signOut();
-                  Get.offAll(const LoginScreen());
-                },
-                child: Text(
-                  tr('signOut'),
-                  style: const TextStyle(
-                    color: Color(0xFF1F3440),
-                    fontSize: 16,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

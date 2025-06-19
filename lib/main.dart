@@ -1,21 +1,30 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'auth/auth_provider.dart';
+import 'package:mihnati2/screens/auth/login_screen.dart';
+import 'package:mihnati2/screens/home/home_screen.dart';
+import 'auth/providers/auth_provider.dart';
+import 'auth/services/firebase_auth_methods.dart';
 import 'screens/splash_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/home/home_screen.dart';
+import 'routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp();
 
+  // Add error handling
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint(details.toString());
+  };
+
+  // Initialize FirebaseAuthMethods with GetX
+  Get.put<FirebaseAuthMethods>(FirebaseAuthMethods(), permanent: true);
+
   // Initialize AuthProvider with GetX
-  final authProvider = AuthProvider();
-  Get.put(authProvider);
+  Get.put<AuthProvider2>(AuthProvider2(), permanent: true);
 
   runApp(
     EasyLocalization(
@@ -33,28 +42,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // Use the same instance of AuthProvider that was initialized with GetX
-        ChangeNotifierProvider.value(value: Get.find<AuthProvider>()),
-      ],
-      child: GetMaterialApp(
-        title: 'Mihnati',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          scaffoldBackgroundColor: Colors.white,
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1F3440)),
-          textTheme: const TextTheme(
-            bodyLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            bodyMedium: TextStyle(fontSize: 16),
-          ),
+    return GetMaterialApp(
+      title: 'Mihnati',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1F3440)),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          bodyMedium: TextStyle(fontSize: 16),
         ),
-        locale: context.locale,
-        supportedLocales: context.supportedLocales,
-        localizationsDelegates: context.localizationDelegates,
-        home: const SplashScreen(),
       ),
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
+      initialRoute: AppRoutes.splash,
+      getPages: AppRoutes.routes,
     );
   }
 }
@@ -64,22 +68,44 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        if (authProvider.isLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
+    final authProvider = Get.find<AuthProvider2>();
+
+    return Obx(() {
+      if (!authProvider.isInitialized) {
+        return const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('جاري التحميل...'),
+              ],
             ),
-          );
-        }
+          ),
+        );
+      }
 
-        if (authProvider.isAuthenticated) {
-          return const HomeScreen();
-        }
+      if (authProvider.isLoading) {
+        return const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('جاري المعالجة...'),
+              ],
+            ),
+          ),
+        );
+      }
 
-        return const LoginScreen();
-      },
-    );
+      if (authProvider.isAuthenticated) {
+        return const HomeScreen();
+      }
+
+      return const LoginScreen();
+    });
   }
 }

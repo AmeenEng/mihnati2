@@ -1,14 +1,25 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:get/get.dart';
+import 'dart:io' show Platform;
 
-class FirebaseAuthMethods extends ChangeNotifier {
+class FirebaseAuthMethods extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   User? get currentUser => _auth.currentUser;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Only set persistence on web platform
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      _auth.setPersistence(Persistence.LOCAL);
+    }
+  }
 
   // Email & Password Sign Up
   Future<void> signUpWithEmail({
@@ -92,7 +103,14 @@ class FirebaseAuthMethods extends ChangeNotifier {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      if (googleUser == null) return null;
+      if (googleUser == null) {
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم إلغاء تسجيل الدخول بحساب جوجل')),
+          );
+        }
+        return null;
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -172,22 +190,70 @@ class FirebaseAuthMethods extends ChangeNotifier {
     }
   }
 
-  // Send Email Verification
   Future<void> sendEmailVerification(BuildContext context) async {
     try {
-      await _auth.currentUser?.sendEmailVerification();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('تم إرسال رسالة التحقق على البريد الإلكتروني!')),
-        );
+      final user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+
+        // أضف هذه الطباعة لتتبع الإرسال
+        debugPrint('تم إرسال رسالة التحقق إلى: ${user.email}');
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('تم إرسال رسالة التحقق على البريد الإلكتروني!')),
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
+      debugPrint('خطأ في إرسال التحقق: ${e.message}'); // أضف هذه الطباعة
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('خطأ أثناء إرسال رسالة التحقق: ${e.message}')),
         );
       }
+      rethrow;
+    }
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await _auth.currentUser?.updatePassword(newPassword);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateEmail(String newEmail) async {
+    try {
+      await _auth.currentUser?.updateEmail(newEmail);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> reauthenticate(String email, String password) async {
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await _auth.currentUser?.reauthenticateWithCredential(credential);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> checkEmailVerification() async {
+    try {
+      await _auth.currentUser?.reload();
+      if (_auth.currentUser?.emailVerified == true) {
+        return;
+      }
+      throw 'لم يتم التحقق من البريد الإلكتروني بعد';
+    } catch (e) {
       rethrow;
     }
   }
