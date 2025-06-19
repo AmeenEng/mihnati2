@@ -1,134 +1,249 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mihnati2/screens/home/home_screen.dart';
 import '../services/firebase_auth_methods.dart';
+import '../../routes.dart';
+import '../../utils/auth_error_handler.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
-class AuthProvider extends ChangeNotifier {
-  final FirebaseAuthMethods _authMethods = FirebaseAuthMethods();
-  User? _user;
-  bool _isLoading = false;
+class AuthProvider2 extends GetxController {
+  final FirebaseAuthMethods _authMethods = Get.find<FirebaseAuthMethods>();
+  final Rx<User?> _user = Rx<User?>(null);
+  final RxBool _isLoading = false.obs;
+  final RxBool _isInitialized = false.obs;
+  final RxBool _isTokenExpired = false.obs;
 
-  AuthProvider() {
+  static AuthProvider2 get to => Get.find();
+
+  @override
+  void onInit() {
+    super.onInit();
     _init();
+
+    // Add debounce to prevent state changes during build
+    ever(_isLoading, (value) {
+      if (value) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _isLoading.value = value;
+        });
+      } else {
+        _isLoading.value = value;
+      }
+    });
   }
 
-  User? get user => _user;
-  bool get isLoading => _isLoading;
-  bool get isAuthenticated => _user != null;
+  @override
+  void onClose() {
+    _user.close();
+    _isLoading.close();
+    _isInitialized.close();
+    _isTokenExpired.close();
+    super.onClose();
+  }
 
-  void _init() {
-    _authMethods.authStateChanges.listen((User? user) {
-      _user = user;
-      notifyListeners();
+  User? get user => _user.value;
+  bool get isLoading => _isLoading.value;
+  bool get isAuthenticated => _user.value != null;
+  bool get isInitialized => _isInitialized.value;
+  bool get isTokenExpired => _isTokenExpired.value;
+
+  Future<void> _init() async {
+    try {
+      // Listen to auth state changes
+      _authMethods.authStateChanges.listen((User? user) {
+        _user.value = user;
+        _checkTokenExpiration();
+      });
+
+      // Check current user
+      final currentUser = _authMethods.currentUser;
+      if (currentUser != null) {
+        _user.value = currentUser;
+        await _checkTokenExpiration();
+      }
+
+      _isInitialized.value = true;
+    } catch (e) {
+      AuthErrorHandler.showErrorSnackBar(AuthErrorHandler.getErrorMessage(e));
+      _isInitialized.value = true;
+    }
+  }
+
+  Future<void> _checkTokenExpiration() async {
+    try {
+      if (_user.value != null) {
+        final idTokenResult = await _user.value!.getIdTokenResult();
+        _isTokenExpired.value =
+            idTokenResult.expirationTime!.isBefore(DateTime.now());
+      }
+    } catch (e) {
+      _isTokenExpired.value = true;
+    }
+  }
+
+  Future<void> signInWithEmailAndPassword(String email, String password) async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.loginWithEmail(
+        email: email,
+        password: password,
+        username: email.split('@')[0],
+        context: Get.context!,
+      );
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.signInWithGoogle(context: Get.context!);
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.signOut();
+      Get.offAllNamed(AppRoutes.login);
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.resetPassword(
+        email: email,
+        context: Get.context!,
+      );
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.updatePassword(newPassword);
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> updateEmail(String newEmail) async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.updateEmail(newEmail);
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.deleteAccount(context: Get.context!);
+      Get.offAllNamed(AppRoutes.login);
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> reauthenticate(String email, String password) async {
+    try {
+      _isLoading.value = true;
+      await _authMethods.reauthenticate(email, password);
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> sendEmailVerification() async {
+    if (_isLoading.value) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        _isLoading.value = true;
+        await _authMethods.sendEmailVerification(Get.context!);
+      } catch (e) {
+        AuthErrorHandler.showErrorSnackBar(AuthErrorHandler.getErrorMessage(e));
+      } finally {
+        _isLoading.value = false;
+      }
     });
+  }
+
+  Future<void> reloadUser() async {
+    try {
+      _isLoading.value = true;
+      await FirebaseAuth.instance.currentUser?.reload();
+      _user.value = FirebaseAuth.instance.currentUser;
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  Future<void> checkEmailVerification() async {
+    try {
+      _isLoading.value = true;
+      await reloadUser();
+
+      if (user?.emailVerified ?? false) {
+        Get.offAll(() => const HomeScreen());
+      }
+    } finally {
+      _isLoading.value = false;
+    }
   }
 
   Future<void> signUp({
     required String email,
     required String password,
     required String username,
-    required BuildContext context,
   }) async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
+      _isLoading.value = true;
       await _authMethods.signUpWithEmail(
         email: email,
         password: password,
         username: username,
-        context: context,
+        context: Get.context!,
       );
+      Get.offAllNamed(AppRoutes.verifyEmail);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _isLoading.value = false;
     }
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-    required String username,
-    required BuildContext context,
-  }) async {
-    _isLoading = true;
-    notifyListeners();
+  Future<bool> _checkInternetConnection() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      AuthErrorHandler.showErrorSnackBar('لا يوجد اتصال بالإنترنت');
+      return false;
+    }
+    return true;
+  }
 
+  Future<void> _recoverFromError() async {
     try {
-      await _authMethods.loginWithEmail(
-        email: email,
-        password: password,
-        username: username,
-        context: context,
-      );
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      await _checkTokenExpiration();
+      if (_isTokenExpired.value) {
+        await _handleTokenExpiration();
+      }
+    } catch (e) {
+      AuthErrorHandler.showErrorSnackBar(AuthErrorHandler.getErrorMessage(e));
     }
   }
 
-  Future<void> signInWithGoogle() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _authMethods.signInWithGoogle();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> signOut() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _authMethods.signOut();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> resetPassword({
-    required String email,
-    required BuildContext context,
-  }) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _authMethods.resetPassword(
-        email: email,
-        context: context,
-      );
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> deleteAccount() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _authMethods.deleteAccount();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> sendEmailVerification(BuildContext context) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _authMethods.sendEmailVerification(context);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+  Future<void> _handleTokenExpiration() async {
+    await signOut();
+    AuthErrorHandler.showErrorSnackBar(
+        'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
   }
 }

@@ -1,77 +1,93 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../auth/auth_provider.dart';
+import 'package:get/get.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../utils/auth_error_handler.dart';
+import '../../widgets/custom_button.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
+    final authProvider = Get.find<AuthProvider2>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('الرئيسية'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               try {
-                await context.read<AuthProvider>().signOut();
+                await authProvider.signOut();
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
-                  );
-                }
+                AuthErrorHandler.showErrorSnackBar(
+                    AuthErrorHandler.getErrorMessage(e));
               }
             },
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Welcome, ${user?.displayName ?? 'User'}!',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              user?.email ?? '',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 16),
-            if (user?.emailVerified == false)
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Please verify your email address',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        try {
-                          await context
-                              .read<AuthProvider>()
-                              .sendEmailVerification(context);
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(e.toString())),
-                            );
-                          }
-                        }
-                      },
-                      child: const Text('Resend Verification Email'),
-                    ),
-                  ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40),
+              // Image.asset(
+              //   "assets/image/auth-Image/Home-amico.png",
+              //   height: 200,
+              // ),
+              const SizedBox(height: 32),
+              const Text(
+                'مرحبًا بك في تطبيق مهنتي',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
-          ],
+              const SizedBox(height: 16),
+              const Text(
+                'يمكنك الآن استخدام التطبيق',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Obx(() => Text(
+                    'البريد الإلكتروني: ${authProvider.user?.email ?? "غير متوفر"}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+              const SizedBox(height: 16),
+              Obx(() => Text(
+                    'تم التحقق من البريد الإلكتروني: ${authProvider.user?.emailVerified ?? false ? "نعم" : "لا"}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+              const SizedBox(height: 32),
+              CustomButton(
+                onPressed: () async {
+                  try {
+                    await authProvider.signOut();
+                  } catch (e) {
+                    AuthErrorHandler.showErrorSnackBar(
+                        AuthErrorHandler.getErrorMessage(e));
+                  }
+                },
+                text: 'تسجيل الخروج',
+                backgroundColor: Colors.grey,
+              ),
+            ],
+          ),
         ),
       ),
     );

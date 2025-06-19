@@ -47,6 +47,8 @@ dependencies:
   get: ^4.7.2
   google_sign_in: ^6.1.6
   provider: ^6.1.1
+  connectivity_plus: ^6.1.4
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
