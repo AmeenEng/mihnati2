@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -32,6 +33,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
   bool _isLoading = true;
   bool _hasError = false;
   int _unreadNotifications = 0;
+  StreamSubscription? _notificationSubscription;
 
   // متغيرات لتعليقات العملاء
   List<ReviewModel> _reviews = [];
@@ -75,14 +77,16 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
     final uid = currentUser?.uid;
     if (uid == null) return;
 
-    _firestore
+    _notificationSubscription = _firestore
         .collection('users')
         .doc(uid)
         .collection('notifications')
         .where('isRead', isEqualTo: false)
         .snapshots()
         .listen((snapshot) {
-      setState(() => _unreadNotifications = snapshot.docs.length);
+      if (mounted) {
+        setState(() => _unreadNotifications = snapshot.docs.length);
+      }
     });
   }
 
@@ -352,8 +356,11 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
 
   void _logout() async {
     try {
+      await _notificationSubscription?.cancel(); // 💥
       await FirebaseAuth.instance.signOut();
-      Get.offAllNamed('/login');
+      Future.delayed(Duration.zero, () {
+        Get.offAllNamed('/login');
+      });
     } catch (e) {
       Get.snackbar('خطأ', 'حدث خطأ أثناء تسجيل الخروج');
     }
