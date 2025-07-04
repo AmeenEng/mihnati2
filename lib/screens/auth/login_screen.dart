@@ -7,7 +7,7 @@ import '../../utils/auth_error_handler.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/social_auth_button.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // إضافة هذه السطر
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,57 +22,69 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool rememberMe = false;
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleLogin() async {
     final authProvider = Get.find<AuthProvider2>();
     if (authProvider.isLoading) return;
 
     try {
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
       await authProvider.signInWithEmailAndPassword(
         emailController.text,
         passwordController.text,
       );
-      
-      // الحصول على uid للمستخدم الحالي
-      String? uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        // التحقق من نوع الحساب
-        String accountType = await authProvider.getAccountType(uid);
-        
-        // إعادة التوجيه بناءً على النوع
-        if (accountType == 'professional') {
-          Get.offAllNamed(AppRoutes.professionalHome);
-        } else {
-          Get.offAllNamed(AppRoutes.clientHome);
-        }
-      } else {
-        // إذا لم يتم الحصول على uid، نعيد التوجيه للصفحة الافتراضية
-        Get.offAllNamed(AppRoutes.clientHome);
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        if (Get.isDialogOpen!) Get.back();
+
+        final accountType = await authProvider.getAccountType(user.uid);
+        Get.offAllNamed(accountType == 'professional'
+            ? AppRoutes.professionalHome
+            : AppRoutes.clientHome);
       }
     } catch (e) {
+      if (Get.isDialogOpen!) Get.back();
       AuthErrorHandler.showErrorSnackBar(
         AuthErrorHandler.getErrorMessage(e),
       );
     }
   }
 
-  // دالة جديدة للتعامل مع تسجيل الدخول بواسطة جوجل
   Future<void> _handleGoogleLogin() async {
     final authProvider = Get.find<AuthProvider2>();
     try {
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
       await authProvider.signInWithGoogle();
-      
-      String? uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        String accountType = await authProvider.getAccountType(uid);
-        if (accountType == 'professional') {
-          Get.offAllNamed(AppRoutes.professionalHome);
-        } else {
-          Get.offAllNamed(AppRoutes.clientHome);
-        }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        if (Get.isDialogOpen!) Get.back();
+
+        final accountType = await authProvider.getAccountType(user.uid);
+        Get.offAllNamed(accountType == 'professional'
+            ? AppRoutes.professionalHome
+            : AppRoutes.clientHome);
       } else {
+        if (Get.isDialogOpen!) Get.back();
         Get.offAllNamed(AppRoutes.clientHome);
       }
     } catch (e) {
+      if (Get.isDialogOpen!) Get.back();
       AuthErrorHandler.showErrorSnackBar(
         AuthErrorHandler.getErrorMessage(e),
       );
@@ -116,8 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 "يرجى تسجيل الدخول للمتابعة",
                 style: TextStyle(
-                  fontSize: size.width > 400 ? 16 : 14,
-                  color: const Color(0xFF1F3440)),
+                    fontSize: size.width > 400 ? 16 : 14,
+                    color: const Color(0xFF1F3440)),
               ),
               SizedBox(height: size.height * 0.03),
               CustomTextField(
@@ -134,12 +146,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 prefixIcon: Icons.lock,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword 
-                      ? Icons.visibility_off 
-                      : Icons.visibility,
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
                     color: Colors.grey,
                   ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               Align(
@@ -169,16 +180,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(height: size.height * 0.03),
               Obx(() => CustomButton(
-                onPressed: authProvider.isLoading
-                    ? null
-                    : _handleLogin, // استخدام الدالة الجديدة
-                text: authProvider.isLoading
-                    ? 'جاري تسجيل الدخول...'
-                    : 'تسجيل الدخول',
-              )),
+                    onPressed: authProvider.isLoading ? null : _handleLogin,
+                    text: authProvider.isLoading
+                        ? 'جاري تسجيل الدخول...'
+                        : 'تسجيل الدخول',
+                  )),
               SizedBox(height: size.height * 0.02),
               SocialAuthButton(
-                onPressed: _handleGoogleLogin, // استخدام الدالة الجديدة
+                onPressed: _handleGoogleLogin,
                 text: 'تسجيل الدخول باستخدام Google',
                 image: "assets/icon/google.png",
               ),
