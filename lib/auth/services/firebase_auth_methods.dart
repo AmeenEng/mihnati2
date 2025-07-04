@@ -15,13 +15,11 @@ class FirebaseAuthMethods extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Only set persistence on web platform
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       _auth.setPersistence(Persistence.LOCAL);
     }
   }
 
-  // Email & Password Sign Up
   Future<void> signUpWithEmail({
     required String email,
     required String password,
@@ -62,7 +60,6 @@ class FirebaseAuthMethods extends GetxController {
     }
   }
 
-  // Email & Password Login
   Future<void> loginWithEmail({
     required String email,
     required String password,
@@ -98,7 +95,6 @@ class FirebaseAuthMethods extends GetxController {
     }
   }
 
-  // Google Sign In
   Future<UserCredential?> signInWithGoogle({BuildContext? context}) async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -139,7 +135,6 @@ class FirebaseAuthMethods extends GetxController {
     }
   }
 
-  // Sign Out
   Future<void> signOut() async {
     await Future.wait([
       _auth.signOut(),
@@ -147,7 +142,6 @@ class FirebaseAuthMethods extends GetxController {
     ]);
   }
 
-  // Reset Password
   Future<void> resetPassword({
     required String email,
     required BuildContext context,
@@ -176,7 +170,6 @@ class FirebaseAuthMethods extends GetxController {
     }
   }
 
-  // Delete Account
   Future<void> deleteAccount({BuildContext? context}) async {
     try {
       await _auth.currentUser?.delete();
@@ -196,7 +189,6 @@ class FirebaseAuthMethods extends GetxController {
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
 
-        // أضف هذه الطباعة لتتبع الإرسال
         debugPrint('تم إرسال رسالة التحقق إلى: ${user.email}');
 
         if (context.mounted) {
@@ -207,7 +199,7 @@ class FirebaseAuthMethods extends GetxController {
         }
       }
     } on FirebaseAuthException catch (e) {
-      debugPrint('خطأ في إرسال التحقق: ${e.message}'); // أضف هذه الطباعة
+      debugPrint('خطأ في إرسال التحقق: ${e.message}');
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

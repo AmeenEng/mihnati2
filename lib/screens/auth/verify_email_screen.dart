@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mihnati2/auth/providers/auth_provider.dart';
 import 'package:mihnati2/screens/auth/CompleteProfileScreen.dart';
-import 'package:mihnati2/screens/home/home_screen.dart';
+// import 'package:mihnati2/screens/home/home_screen.dart';
 import 'package:mihnati2/screens/auth/login_screen.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   bool _isResending = false;
   bool _isChecking = false;
   int _checkAttempts = 0;
-  final int _maxCheckAttempts = 12; // دقيقة واحدة كحد أقصى (12 × 5 ثواني)
+  final int _maxCheckAttempts = 12; 
 
   @override
   void initState() {

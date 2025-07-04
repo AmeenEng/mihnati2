@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // إضافة هذه السطر
 import '../../auth/providers/auth_provider.dart';
 import '../../routes.dart';
 import '../../utils/auth_error_handler.dart';
@@ -20,6 +21,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
   final usernameController = TextEditingController();
   bool _obscurePassword = true;
+
+  // دالة جديدة للتعامل مع تسجيل الدخول بواسطة جوجل
+  Future<void> _handleGoogleSignUp() async {
+    final authProvider = Get.find<AuthProvider2>();
+    try {
+      await authProvider.signInWithGoogle();
+
+      String? uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        String accountType = await authProvider.getAccountType(uid);
+        if (accountType == 'professional') {
+          Get.offAllNamed(AppRoutes.professionalHome);
+        } else {
+          Get.offAllNamed(AppRoutes.clientHome);
+        }
+      } else {
+        Get.offAllNamed(AppRoutes.clientHome);
+      }
+    } catch (e) {
+      AuthErrorHandler.showErrorSnackBar(
+        AuthErrorHandler.getErrorMessage(e),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,48 +104,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 prefixIcon: Icons.lock,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword 
-                      ? Icons.visibility_off 
-                      : Icons.visibility,
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
                     color: Colors.grey,
                   ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               SizedBox(height: size.height * 0.04),
               Obx(() => CustomButton(
-                onPressed: authProvider.isLoading
-                    ? null
-                    : () async {
-                        try {
-                          await authProvider.signUp(
-                            email: emailController.text,
-                            password: passwordController.text,
-                            username: usernameController.text,
-                          );
-                          Get.to(() => const VerifyEmailScreen());
-                        } catch (e) {
-                          AuthErrorHandler.showErrorSnackBar(
-                              AuthErrorHandler.getErrorMessage(e));
-                        }
-                      },
-                text: authProvider.isLoading
-                    ? 'جاري إنشاء الحساب...'
-                    : 'إنشاء حساب',
-              )),
+                    onPressed: authProvider.isLoading
+                        ? null
+                        : () async {
+                            try {
+                              await authProvider.signUp(
+                                email: emailController.text,
+                                password: passwordController.text,
+                                username: usernameController.text,
+                              );
+                              Get.to(() => const VerifyEmailScreen());
+                            } catch (e) {
+                              AuthErrorHandler.showErrorSnackBar(
+                                  AuthErrorHandler.getErrorMessage(e));
+                            }
+                          },
+                    text: authProvider.isLoading
+                        ? 'جاري إنشاء الحساب...'
+                        : 'إنشاء حساب',
+                  )),
               SizedBox(height: size.height * 0.02),
               SocialAuthButton(
                 text: 'إنشاء حساب باستخدام Google',
                 image: 'assets/icon/google.png',
-                onPressed: () async {
-                  try {
-                    await authProvider.signInWithGoogle();
-                    Get.offAllNamed(AppRoutes.home);
-                  } catch (e) {
-                    AuthErrorHandler.showErrorSnackBar(
-                        AuthErrorHandler.getErrorMessage(e));
-                  }
-                },
+                onPressed: _handleGoogleSignUp, // استخدام الدالة الجديدة
               ),
               SizedBox(height: size.height * 0.03),
               Row(
