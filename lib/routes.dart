@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mihnati2/screens/auth/CompleteProfileScreen.dart';
+import 'package:mihnati2/screens/client/screens/client_home_screen.dart';
+import 'package:mihnati2/screens/professional/screens/professional_home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/verify_email_screen.dart';
-import 'screens/home/home_screen.dart';
 import 'Onboarding/onboarding_view.dart';
+import 'screens/profile_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -14,8 +15,10 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String verifyEmail = '/verify-email';
-  static const String home = '/home';
+  static const String professionalHome = '/professionalHome';
+  static const String clientHome = '/clientHome';
   static const String completeProfile = '/completeProfile';
+  static const String profile = '/profile';
 
   static final routes = [
     GetPage(
@@ -39,12 +42,20 @@ class AppRoutes {
       page: () => const VerifyEmailScreen(),
     ),
     GetPage(
-      name: home,
-      page: () => const HomeScreen(),
+      name: professionalHome,
+      page: () => const ProfessionalHomeScreen(),
+    ),
+    GetPage(
+      name: clientHome,
+      page: () => const ClientHomeScreen(),
     ),
     GetPage(
       name: completeProfile,
       page: () => const CompleteProfileScreen(),
+    ),
+    GetPage(
+      name: profile,
+      page: () => const ProfileScreen(),
     ),
   ];
 }

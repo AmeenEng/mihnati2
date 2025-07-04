@@ -63,26 +63,39 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       try {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
-          // تخزين البيانات في Firestore
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
+          // مرجع مستند المستخدم
+          final userRef =
+              FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+          // البيانات الأساسية
+          await userRef.set({
             'fullName': _fullNameController.text,
             'email': user.email,
             'phone': _phoneController.text,
             'type': _selectedUserType,
             'location': _locationController.text,
-            'rating': 4.5, // التقييم الابتدائي
-            'reviewCount': 0, // عدد التقييمات الابتدائي
+            'rating': 4.5, 
+            'reviewCount': 0, 
             'createdAt': FieldValue.serverTimestamp(),
             'services':
                 _selectedUserType == 'professional' ? _selectedServices : [],
-            // TODO: رفع صورة الملف الشخصي إذا وجدت والتخزين في Firebase Storage ثم حفظ الرابط
           });
 
+          // إذا كان المستخدم مهنيًا، نقوم بإنشاء الإحصائيات الأولية
+          if (_selectedUserType == 'professional') {
+            final statsRef = userRef.collection('stats');
+            await Future.wait([
+              statsRef.doc('earnings').set({'total': 0.0}),
+              statsRef.doc('jobs').set({'completed': 0}),
+            ]);
+          }
+
           // الانتقال إلى الشاشة الرئيسية
-          Get.offAllNamed(AppRoutes.home);
+          if (_selectedUserType == 'professional') {
+            Get.offAllNamed(AppRoutes.professionalHome);
+          } else {
+            Get.offAllNamed(AppRoutes.clientHome);
+          }
         }
       } catch (e) {
         Get.snackbar('خطأ', 'حدث خطأ أثناء حفظ البيانات: ${e.toString()}');

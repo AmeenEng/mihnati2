@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,7 +22,6 @@ class AuthProvider2 extends GetxController {
     super.onInit();
     _init();
 
-    // Add debounce to prevent state changes during build
     ever(_isLoading, (value) {
       if (value) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -50,13 +50,11 @@ class AuthProvider2 extends GetxController {
 
   Future<void> _init() async {
     try {
-      // Listen to auth state changes
       _authMethods.authStateChanges.listen((User? user) {
         _user.value = user;
         _checkTokenExpiration();
       });
-
-      // Check current user
+      
       final currentUser = _authMethods.currentUser;
       if (currentUser != null) {
         _user.value = currentUser;
@@ -166,7 +164,6 @@ class AuthProvider2 extends GetxController {
 
   Future<void> sendEmailVerification() async {
     if (_isLoading.value) return;
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         _isLoading.value = true;
@@ -245,5 +242,26 @@ class AuthProvider2 extends GetxController {
     await signOut();
     AuthErrorHandler.showErrorSnackBar(
         'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
+  }
+
+  Future<String> getAccountType(String uid) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users') 
+          .doc(uid)
+          .get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>;
+        final type = data['type'] ?? 'client'; 
+        return type;
+      }
+
+      return 'client';
+    } catch (e) {
+      print('Error getting account type: $e');
+      return 'client';
+    }
   }
 }

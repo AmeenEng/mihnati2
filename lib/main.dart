@@ -6,7 +6,6 @@ import 'package:mihnati2/screens/auth/login_screen.dart';
 import 'package:mihnati2/screens/home/home_screen.dart';
 import 'auth/providers/auth_provider.dart';
 import 'auth/services/firebase_auth_methods.dart';
-import 'screens/splash_screen.dart';
 import 'routes.dart';
 
 void main() async {

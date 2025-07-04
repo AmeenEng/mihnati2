@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../auth/providers/auth_provider.dart';
 import '../routes.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SplashController extends GetxController {
   final AuthProvider2 _authProvider = Get.find<AuthProvider2>();
@@ -14,13 +15,23 @@ class SplashController extends GetxController {
 
   Future<void> _initialize() async {
     try {
-      // Wait for auth provider to initialize
       await Future.delayed(const Duration(seconds: 2));
       _isInitialized.value = true;
 
-      // Navigate based on auth state
       if (_authProvider.isAuthenticated) {
-        Get.offAllNamed(AppRoutes.home);
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+
+        if (uid != null) {
+          final accountType = await _authProvider.getAccountType(uid);
+
+          if (accountType == 'professional') {
+            Get.offAllNamed(AppRoutes.professionalHome);
+          } else {
+            Get.offAllNamed(AppRoutes.clientHome);
+          }
+        } else {
+          Get.offAllNamed(AppRoutes.clientHome);
+        }
       } else {
         Get.offAllNamed(AppRoutes.login);
       }
