@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -64,41 +65,49 @@ class _BookingScreenState extends State<BookingScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         Get.snackbar('خطأ', 'يجب تسجيل الدخول أولاً');
+        setState(() => _isLoading = false);
         return;
       }
 
       try {
+        // جلب بيانات العميل من Firestore
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (!userDoc.exists) {
+          Get.snackbar('خطأ', 'لم يتم العثور على بيانات المستخدم');
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        final userData = userDoc.data() as Map<String, dynamic>;
+        final clientPhone = userData['phone'] ?? '';
+        final clientName = userData['fullName'] ?? user.displayName ?? 'عميل';
+
         final bookingData = {
           'clientId': user.uid,
           'professionalId': widget.professional.id,
           'serviceId': widget.service.id,
-          'clientName': user.displayName ?? 'عميل',
+          'clientName': clientName,
           'professionalName': widget.professional.name,
           'serviceName': widget.service.name,
-          'date': _selectedDate!.toString(),
+          'serviceCategory': widget.service.category,
+          'date': DateFormat('yyyy-MM-dd').format(_selectedDate!),
           'time': _selectedTime!.format(context),
           'address': _addressController.text,
           'notes': _notesController.text,
-          'status': 'pending',
+          'status': 'معلقة',
+          'price': widget.service.price,
+          'clientPhone': clientPhone,
           'createdAt': FieldValue.serverTimestamp(),
         };
 
-        // 1. إضافة الحجز إلى مجموعة الحجوزات
-        final bookingRef = await FirebaseFirestore.instance
+        // إضافة الحجز
+        await FirebaseFirestore.instance
             .collection('bookings')
             .add(bookingData);
-
-        // 2. إرسال إشعار للمهني (مجموعة منفصلة)
-        await FirebaseFirestore.instance.collection('notifications').add({
-          'userId': widget.professional.id,
-          'title': 'حجز جديد',
-          'body':
-              'قام ${user.displayName ?? "عميل"} بحجز خدمة ${widget.service.name}',
-          'type': 'booking',
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-          'bookingId': bookingRef.id,
-        });
 
         Get.back(); // إغلاق شاشة الحجز
         Get.snackbar('تم', 'تم الحجز بنجاح',
@@ -132,11 +141,20 @@ class _BookingScreenState extends State<BookingScreen> {
                 subtitle: Text(widget.service.name),
               ),
               ListTile(
+                title: const Text('التصنيف'),
+                subtitle: Text(widget.service.category),
+              ),
+              ListTile(
+                title: const Text('السعر'),
+                subtitle:
+                    Text('${widget.service.price.toStringAsFixed(2)} ر.س'),
+              ),
+              ListTile(
                 title: const Text('التاريخ'),
                 subtitle: Text(
                   _selectedDate == null
                       ? 'اختر التاريخ'
-                      : '${_selectedDate!.year}/${_selectedDate!.month}/${_selectedDate!.day}',
+                      : DateFormat('yyyy-MM-dd').format(_selectedDate!),
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () => _selectDate(context),

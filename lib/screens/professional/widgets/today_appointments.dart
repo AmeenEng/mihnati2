@@ -26,7 +26,7 @@ class TodayAppointments extends StatelessWidget {
           .where('professionalId', isEqualTo: userId)
           .where('date', isEqualTo: today)
           .orderBy('time')
-          .snapshots(includeMetadataChanges: true),
+          .snapshots(),
       builder: (context, snapshot) {
         // حالة التحميل
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -77,7 +77,7 @@ class TodayAppointments extends StatelessWidget {
       stream: firestore
           .collection('bookings')
           .where('professionalId', isEqualTo: userId)
-          .where('date', isEqualTo: today)
+          // .where('date', isEqualTo: today)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {

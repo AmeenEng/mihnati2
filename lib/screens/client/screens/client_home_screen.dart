@@ -39,7 +39,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
 
   Future<void> _loadBookingCount() async {
     if (currentUser == null) return;
-    
+
     final snapshot = await _firestore
         .collection('users')
         .doc(currentUser!.uid)
@@ -300,6 +300,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             String errorMessage = 'حدث خطأ في تحميل المهنيين';
 
             if (snapshot.error is FirebaseException) {
+              print("Firestore error: ${snapshot.error}");
               firebaseError = snapshot.error as FirebaseException;
               if (firebaseError.code == 'permission-denied') {
                 errorMessage = 'لا تملك الصلاحيات اللازمة لرؤية المهنيين';
