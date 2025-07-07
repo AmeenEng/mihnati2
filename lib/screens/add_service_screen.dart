@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
 import 'package:mihnati2/common/models/service_model.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class AddServiceScreen extends StatefulWidget {
   final ServiceModel? service;
@@ -25,7 +27,6 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   late TextEditingController _categoryController;
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
-  // late String _imageUrl;
   late File? _imageFile;
 
   @override
@@ -38,16 +39,26 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
         TextEditingController(text: widget.service?.description ?? '');
     _priceController =
         TextEditingController(text: widget.service?.price.toString() ?? '');
-    // _imageUrl = widget.service?.imageUrl ?? '';
     _imageFile = null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final c = AppColors;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.service == null ? 'إضافة خدمة' : 'تعديل خدمة'),
+        title: Text(
+          widget.service == null ? 'إضافة خدمة' : 'تعديل خدمة',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.primaryColor,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -60,20 +71,30 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                    ),
                   ),
                   child: _imageFile != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.file(_imageFile!, fit: BoxFit.cover),
                         )
-                      : const Column(
+                      : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.add_a_photo,
-                                size: 50, color: Colors.grey),
-                            Text('إضافة صورة'),
+                                size: 50,
+                                color: isDark
+                                    ? AppColors.darkIcon
+                                    : AppColors.lightIcon),
+                            Text('إضافة صورة',
+                                style: TextStyle(
+                                    color: isDark
+                                        ? AppColors.darkText
+                                        : AppColors.lightText)),
                           ],
                         ),
                 ),
@@ -81,9 +102,17 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                style: TextStyle(
+                    color: isDark ? AppColors.darkText : AppColors.lightText),
+                decoration: InputDecoration(
                   labelText: 'اسم الخدمة',
+                  labelStyle: TextStyle(
+                      color: isDark ? AppColors.darkText : AppColors.lightText),
                   border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: isDark ? Colors.grey[600]! : Colors.grey[400]!),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -95,9 +124,17 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               const SizedBox(height: 15),
               TextFormField(
                 controller: _categoryController,
-                decoration: const InputDecoration(
+                style: TextStyle(
+                    color: isDark ? AppColors.darkText : AppColors.lightText),
+                decoration: InputDecoration(
                   labelText: 'التصنيف',
+                  labelStyle: TextStyle(
+                      color: isDark ? AppColors.darkText : AppColors.lightText),
                   border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: isDark ? Colors.grey[600]! : Colors.grey[400]!),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -109,9 +146,17 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               const SizedBox(height: 15),
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
+                style: TextStyle(
+                    color: isDark ? AppColors.darkText : AppColors.lightText),
+                decoration: InputDecoration(
                   labelText: 'السعر (ر.س)',
+                  labelStyle: TextStyle(
+                      color: isDark ? AppColors.darkText : AppColors.lightText),
                   border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: isDark ? Colors.grey[600]! : Colors.grey[400]!),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -127,9 +172,17 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               const SizedBox(height: 15),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
+                style: TextStyle(
+                    color: isDark ? AppColors.darkText : AppColors.lightText),
+                decoration: InputDecoration(
                   labelText: 'الوصف',
+                  labelStyle: TextStyle(
+                      color: isDark ? AppColors.darkText : AppColors.lightText),
                   border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: isDark ? Colors.grey[600]! : Colors.grey[400]!),
+                  ),
                 ),
                 maxLines: 4,
                 validator: (value) {
@@ -145,12 +198,13 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                 child: ElevatedButton(
                   onPressed: _saveService,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F3440),
+                    backgroundColor: AppColors.primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: Text(widget.service == null
-                      ? 'إضافة الخدمة'
-                      : 'حفظ التعديلات'),
+                  child: Text(
+                    widget.service == null ? 'إضافة الخدمة' : 'حفظ التعديلات',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
@@ -180,7 +234,6 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       }
 
       try {
-
         String imagePath = _imageFile?.path ?? '';
         final serviceData = {
           'name': _nameController.text,

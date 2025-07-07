@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:mihnati2/common/models/booking_model.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class BookingsListScreen extends StatelessWidget {
   const BookingsListScreen({super.key});
@@ -18,8 +21,17 @@ class BookingsListScreen extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: Provider.of<ThemeProvider>(context).isDarkMode
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
         title: const Text('حجوزاتي'),
+        backgroundColor: AppColors.primaryColor,
+        iconTheme: IconThemeData(color: AppColors.lightText),
+        titleTextStyle: TextStyle(
+            color: AppColors.lightText,
+            fontWeight: FontWeight.bold,
+            fontSize: 20),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -61,14 +73,15 @@ class BookingsListScreen extends StatelessWidget {
                     );
                   }
 
-                  if (!bookingSnapshot.hasData || !bookingSnapshot.data!.exists) {
+                  if (!bookingSnapshot.hasData ||
+                      !bookingSnapshot.data!.exists) {
                     return const ListTile(
                       title: Text('الحجز غير متوفر'),
                     );
                   }
 
-                  final booking = BookingModel.fromFirestore(
-                      bookingSnapshot.data! as DocumentSnapshot<Map<String, dynamic>>);
+                  final booking = BookingModel.fromFirestore(bookingSnapshot
+                      .data! as DocumentSnapshot<Map<String, dynamic>>);
 
                   return BookingCard(booking: booking);
                 },
@@ -92,21 +105,44 @@ class BookingCard extends StatelessWidget {
     final formattedDate = DateFormat.yMMMMd('ar').format(date);
 
     return Card(
+      color: Provider.of<ThemeProvider>(context).isDarkMode
+          ? AppColors.darkCard
+          : AppColors.lightCard,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
-        leading: const Icon(Icons.calendar_today, color: Color(0xFF1F3440)),
-        title: Text(booking.serviceName),
+        leading: Icon(Icons.calendar_today, color: AppColors.primaryColor),
+        title: Text(booking.serviceName,
+            style: TextStyle(
+                color: Provider.of<ThemeProvider>(context).isDarkMode
+                    ? AppColors.lightText
+                    : AppColors.darkText)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('المهني: ${booking.professionalName}'),
-            Text('التاريخ: $formattedDate'),
-            Text('الوقت: ${booking.time}'),
-            Text('الحالة: ${_getStatusText(booking.status)}'),
+            Text('المهني: ${booking.professionalName}',
+                style: TextStyle(
+                    color: Provider.of<ThemeProvider>(context).isDarkMode
+                        ? AppColors.lightText
+                        : AppColors.darkText)),
+            Text('التاريخ: $formattedDate',
+                style: TextStyle(
+                    color: Provider.of<ThemeProvider>(context).isDarkMode
+                        ? AppColors.lightText
+                        : AppColors.darkText)),
+            Text('الوقت: ${booking.time}',
+                style: TextStyle(
+                    color: Provider.of<ThemeProvider>(context).isDarkMode
+                        ? AppColors.lightText
+                        : AppColors.darkText)),
+            Text('الحالة: ${_getStatusText(booking.status)}',
+                style: TextStyle(
+                    color: Provider.of<ThemeProvider>(context).isDarkMode
+                        ? AppColors.lightText
+                        : AppColors.darkText)),
           ],
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.info_outline),
+          icon: Icon(Icons.info_outline, color: AppColors.primaryColor),
           onPressed: () {
             // تفاصيل الحجز
           },

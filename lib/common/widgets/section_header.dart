@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAll;
+  final Color textColor;
 
-  const SectionHeader({super.key, required this.title, this.onSeeAll});
+  const SectionHeader(
+      {super.key, required this.title, this.onSeeAll, required this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -15,20 +17,20 @@ class SectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F3440),
+              color: textColor,
             ),
           ),
           if (onSeeAll != null)
             TextButton(
               onPressed: onSeeAll,
-              child: const Text(
+              child: Text(
                 'عرض الكل',
                 style: TextStyle(
-                  color: Color(0xFF3A7D8A),
                   fontWeight: FontWeight.w500,
+                  color: textColor,
                 ),
               ),
             ),

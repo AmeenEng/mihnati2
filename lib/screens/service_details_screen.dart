@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mihnati2/common/models/professional_model.dart';
 import 'package:mihnati2/common/models/service_model.dart';
 import 'package:mihnati2/screens/booking_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
   final ServiceModel service;
@@ -66,28 +69,33 @@ class ServiceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.lightIcon : AppColors.darkIcon;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('تفاصيل الخدمة'),
+        title:
+            Text('تفاصيل الخدمة', style: TextStyle(color: AppColors.lightText)),
+        backgroundColor: AppColors.primaryColor,
+        iconTheme: IconThemeData(color: AppColors.lightText),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            service.imagePath.isNotEmpty
-                ? Image.network(
-                    service.imagePath,
-                    height: 250,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    height: 250,
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: Icon(Icons.image, size: 80, color: Colors.grey),
-                    ),
-                  ),
+            Container(
+              height: 250,
+              color: isDark ? AppColors.darkCard : Colors.grey[200],
+              child: Center(
+                child: Image(image: AssetImage('assets/image/logo/logo.png')),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -95,19 +103,20 @@ class ServiceDetailsScreen extends StatelessWidget {
                 children: [
                   Text(
                     service.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.category, size: 18, color: Colors.grey),
+                      Icon(Icons.category, size: 18, color: iconColor),
                       const SizedBox(width: 5),
                       Text(
                         service.category,
-                        style: const TextStyle(color: Colors.grey),
+                        style: TextStyle(color: iconColor),
                       ),
                     ],
                   ),
@@ -118,22 +127,24 @@ class ServiceDetailsScreen extends StatelessWidget {
                       const SizedBox(width: 5),
                       Text(
                         '${service.rating} (${service.reviews} تقييم)',
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 16, color: textColor),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Text(
+                  Text(
                     'الوصف',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     service.description,
-                    style: const TextStyle(fontSize: 16, height: 1.5),
+                    style:
+                        TextStyle(fontSize: 16, height: 1.5, color: textColor),
                   ),
                   const SizedBox(height: 30),
                   Row(
@@ -141,20 +152,21 @@ class ServiceDetailsScreen extends StatelessWidget {
                     children: [
                       Text(
                         '${service.price.toStringAsFixed(2)} ر.س',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F3440),
+                          color: AppColors.primaryColor,
                         ),
                       ),
                       ElevatedButton(
                         onPressed: _bookService, // تم التعديل هنا
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1F3440),
+                          backgroundColor: AppColors.primaryColor,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 30, vertical: 15),
                         ),
-                        child: const Text('حجز الآن'),
+                        child: const Text('حجز الآن',
+                            style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),

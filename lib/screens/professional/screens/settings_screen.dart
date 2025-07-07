@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -75,6 +78,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -82,20 +94,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('الإعدادات'),
+        backgroundColor: cardColor,
+        title: Text('الإعدادات', style: TextStyle(color: textColor)),
         centerTitle: true,
+        iconTheme: IconThemeData(color: iconColor),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // إعدادات الحساب
-          const Text(
+          Text(
             'إعدادات الحساب',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F3440),
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 10),
@@ -103,71 +118,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.person,
             title: 'تعديل الملف الشخصي',
             onTap: () => Get.toNamed('/edit-profile'),
+            iconColor: iconColor,
+            textColor: textColor,
           ),
           _buildSettingItem(
             icon: Icons.lock,
             title: 'تغيير كلمة المرور',
             onTap: () => Get.toNamed('/change-password'),
+            iconColor: iconColor,
+            textColor: textColor,
           ),
           SwitchListTile(
-            title: const Text('وضع الإجازة'),
-            secondary: const Icon(Icons.beach_access),
+            title: Text('وضع الإجازة', style: TextStyle(color: textColor)),
+            secondary: Icon(Icons.beach_access, color: iconColor),
             value: _vacationMode,
             onChanged: (value) {
               setState(() => _vacationMode = value);
               _updateSetting('vacationMode', value);
             },
+            activeColor: primaryColor,
           ),
 
           // إعدادات التطبيق
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'إعدادات التطبيق',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F3440),
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 10),
           SwitchListTile(
-            title: const Text('تمكين الإشعارات'),
-            secondary: const Icon(Icons.notifications),
+            title: Text('تمكين الإشعارات', style: TextStyle(color: textColor)),
+            secondary: Icon(Icons.notifications, color: iconColor),
             value: _notificationsEnabled,
             onChanged: (value) {
               setState(() => _notificationsEnabled = value);
               _updateSetting('notifications', value);
             },
+            activeColor: primaryColor,
           ),
           SwitchListTile(
-            title: const Text('الوضع الليلي'),
-            secondary: const Icon(Icons.dark_mode),
-            value: _darkModeEnabled,
+            title: Text('الوضع الليلي', style: TextStyle(color: textColor)),
+            secondary: Icon(Icons.dark_mode, color: iconColor),
+            value: themeProvider.isDarkMode,
             onChanged: (value) {
-              setState(() => _darkModeEnabled = value);
+              themeProvider.toggleTheme();
               _updateSetting('darkMode', value);
             },
+            activeColor: primaryColor,
           ),
           _buildSettingItem(
             icon: Icons.access_time,
             title:
                 'ساعات العمل (${_workingHours['start']} - ${_workingHours['end']})',
             onTap: () => Get.toNamed('/working-hours'),
+            iconColor: iconColor,
+            textColor: textColor,
           ),
           _buildSettingItem(
             icon: Icons.language,
             title: 'اللغة',
             onTap: () => Get.toNamed('/language'),
+            iconColor: iconColor,
+            textColor: textColor,
           ),
 
           // معلومات إضافية
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'معلومات إضافية',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F3440),
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 10),
@@ -175,21 +201,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.star,
             title: 'قيم التطبيق',
             onTap: () {},
+            iconColor: iconColor,
+            textColor: textColor,
           ),
           _buildSettingItem(
             icon: Icons.share,
             title: 'شارك التطبيق',
             onTap: () {},
+            iconColor: iconColor,
+            textColor: textColor,
           ),
           _buildSettingItem(
             icon: Icons.privacy_tip,
             title: 'سياسة الخصوصية',
             onTap: () => Get.toNamed('/privacy'),
+            iconColor: iconColor,
+            textColor: textColor,
           ),
           _buildSettingItem(
             icon: Icons.description,
             title: 'شروط الاستخدام',
             onTap: () => Get.toNamed('/terms'),
+            iconColor: iconColor,
+            textColor: textColor,
           ),
         ],
       ),
@@ -200,11 +234,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    required Color iconColor,
+    required Color textColor,
   }) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF3A7D8A)),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      leading: Icon(icon, color: iconColor),
+      title: Text(title, style: TextStyle(color: textColor)),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: iconColor),
       onTap: onTap,
     );
   }

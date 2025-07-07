@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mihnati2/common/models/service_model.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class ServiceManagementCard extends StatelessWidget {
   final ServiceModel service;
@@ -16,9 +19,16 @@ class ServiceManagementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
     return LayoutBuilder(
       builder: (context, constraints) {
         return Card(
+          color: cardColor,
           elevation: 4,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
@@ -26,14 +36,13 @@ class ServiceManagementCard extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: 250,
-              maxHeight: 320, // اضبط حسب الحاجة
+              maxHeight: 320,
             ),
             child: Stack(
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // صورة الخدمة
                     if (service.imagePath.isNotEmpty)
                       ClipRRect(
                         borderRadius: const BorderRadius.only(
@@ -47,8 +56,9 @@ class ServiceManagementCard extends StatelessWidget {
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               height: 120,
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.image, size: 50),
+                              color: cardColor,
+                              child:
+                                  Icon(Icons.image, size: 50, color: iconColor),
                             );
                           },
                         ),
@@ -56,8 +66,8 @@ class ServiceManagementCard extends StatelessWidget {
                     else
                       Container(
                         height: 120,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image, size: 50),
+                        color: cardColor,
+                        child: Icon(Icons.image, size: 50, color: iconColor),
                       ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -65,34 +75,32 @@ class ServiceManagementCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // اسم الخدمة
                           Text(
                             service.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: textColor,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 5),
-                          // التصنيف
                           Text(
                             service.category,
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: textColor.withOpacity(0.7),
                               fontSize: 13,
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // السعر + التقييم
                           Row(
                             children: [
                               Text(
                                 '${service.price} ر.ي',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1F3440),
+                                  color: primaryColor,
                                   fontSize: 16,
                                 ),
                               ),
@@ -103,7 +111,6 @@ class ServiceManagementCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                // زر الإجراءات (تعديل + حذف)
                 Positioned(
                   top: 4,
                   right: 4,
@@ -112,20 +119,19 @@ class ServiceManagementCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.2),
+                          color: cardColor.withOpacity(0.2),
                         )
                       ],
                     ),
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, size: 20),
-                          color: Colors.white,
+                          icon: Icon(Icons.edit, size: 20, color: iconColor),
                           onPressed: onEdit,
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, size: 20),
-                          color: Colors.red,
+                          icon: const Icon(Icons.delete,
+                              size: 20, color: Colors.red),
                           onPressed: () =>
                               _showDeleteDialog(context, service.id),
                         ),

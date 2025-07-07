@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 import 'package:mihnati2/common/models/appointment_model.dart';
 
 class AppointmentDetailsScreen extends StatelessWidget {
@@ -10,105 +13,113 @@ class AppointmentDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
+
+    // حالة الموعد بلون خاص
     Color statusColor = Colors.grey;
     if (appointment.status == 'مؤكدة') statusColor = Colors.green;
     if (appointment.status == 'ملغاة') statusColor = Colors.red;
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('تفاصيل الموعد'),
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: iconColor),
+        title: Text('تفاصيل الموعد', style: TextStyle(color: textColor)),
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'حالة الموعد',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        appointment.status,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+            _buildCard(
+              cardColor,
+              [
+                Text(
+                  'حالة الموعد',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor),
                 ),
-              ),
+                const SizedBox(height: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    appointment.status,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
-            const Text(
-              'معلومات الموعد',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            _buildDetailItem('الخدمة', appointment.serviceName),
-            _buildDetailItem('التصنيف', appointment.serviceCategory),
-            _buildDetailItem('التاريخ', appointment.date),
-            _buildDetailItem('الوقت', appointment.time),
-            _buildDetailItem('العنوان', appointment.address),
-            _buildDetailItem('السعر', '${appointment.price.toStringAsFixed(2)} ر.س'),
-            const SizedBox(height: 20),
-            const Text(
-              'معلومات العميل',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            _buildDetailItem('الاسم', appointment.clientName),
-            _buildDetailItem('رقم الهاتف', appointment.clientPhone),
-            const SizedBox(height: 20),
+            _sectionTitle('معلومات الموعد', textColor),
+            _buildDetailItem('الخدمة', appointment.serviceName, textColor),
+            _buildDetailItem('التصنيف', appointment.serviceCategory, textColor),
+            _buildDetailItem('التاريخ', appointment.date, textColor),
+            _buildDetailItem('الوقت', appointment.time, textColor),
+            _buildDetailItem('العنوان', appointment.address, textColor),
+            _buildDetailItem('السعر',
+                '${appointment.price.toStringAsFixed(2)} ر.س', textColor),
             if (appointment.notes.isNotEmpty) ...[
-              const Text(
-                'ملاحظات',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(appointment.notes),
               const SizedBox(height: 20),
+              _sectionTitle('ملاحظات', textColor),
+              Text(appointment.notes, style: TextStyle(color: textColor)),
             ],
+            const SizedBox(height: 20),
+            _sectionTitle('معلومات العميل', textColor),
+            _buildDetailItem('الاسم', appointment.clientName, textColor),
+            _buildDetailItem('رقم الهاتف', appointment.clientPhone, textColor),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.phone),
-                    label: const Text('اتصال'),
+                    icon: Icon(Icons.phone, color: iconColor),
+                    label: Text('اتصال', style: TextStyle(color: textColor)),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: iconColor),
+                    ),
                     onPressed: () => _makePhoneCall(appointment.clientPhone),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.message),
-                    label: const Text('رسالة'),
+                    icon: Icon(Icons.message, color: iconColor),
+                    label: Text('رسالة', style: TextStyle(color: textColor)),
                     onPressed: () => _sendSms(appointment.clientPhone),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: iconColor),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             Row(
               children: [
                 if (appointment.status != 'ملغاة')
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        // Cancel appointment logic
                         Get.back();
                         Get.snackbar('تم الإلغاء', 'تم إلغاء الموعد بنجاح');
                       },
@@ -116,9 +127,9 @@ class AppointmentDetailsScreen extends StatelessWidget {
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-                      child: const Text(
+                      child: Text(
                         'إلغاء الموعد',
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: Colors.red.shade400),
                       ),
                     ),
                   ),
@@ -127,15 +138,14 @@ class AppointmentDetailsScreen extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Confirm appointment logic
                         Get.back();
                         Get.snackbar('تم التأكيد', 'تم تأكيد الموعد بنجاح');
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1F3440),
-                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        backgroundColor: primaryColor,
                       ),
-                      child: const Text('تأكيد الموعد'),
+                      child: Text('تأكيد الموعد',
+                          style: TextStyle(color: textColor)),
                     ),
                   ),
               ],
@@ -146,9 +156,9 @@ class AppointmentDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(String title, String value) {
+  Widget _buildDetailItem(String title, String value, Color textColor) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -156,36 +166,51 @@ class AppointmentDetailsScreen extends StatelessWidget {
             width: 100,
             child: Text(
               title,
-              style: const TextStyle(color: Colors.grey),
+              style: TextStyle(color: textColor),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.w500)),
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: textColor,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
+  Widget _sectionTitle(String title, Color textColor) {
+    return Text(
+      title,
+      style: TextStyle(
+          fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
     );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    }
+  }
+
+  Widget _buildCard(Color color, List<Widget> children) {
+    return Card(
+      color: color,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
   }
 
   Future<void> _sendSms(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'sms',
-      path: phoneNumber,
-    );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    }
+    final Uri launchUri = Uri(scheme: 'sms', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
   }
 }

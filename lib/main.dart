@@ -2,8 +2,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
 import 'package:mihnati2/screens/auth/login_screen.dart';
 import 'package:mihnati2/screens/home/home_screen.dart';
+import 'package:provider/provider.dart';
 import 'auth/providers/auth_provider.dart';
 import 'auth/services/firebase_auth_methods.dart';
 import 'routes.dart';
@@ -13,16 +15,14 @@ void main() async {
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp();
 
-  // Add error handling
+  // معالجة الأخطاء
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint(details.toString());
   };
 
-  // Initialize FirebaseAuthMethods with GetX
+  // حقن خدمات GetX
   Get.put<FirebaseAuthMethods>(FirebaseAuthMethods(), permanent: true);
-
-  // Initialize AuthProvider with GetX
   Get.put<AuthProvider2>(AuthProvider2(), permanent: true);
 
   runApp(
@@ -31,9 +31,21 @@ void main() async {
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       startLocale: const Locale('ar'),
-      child: const MyApp(),
+      child: MyRootApp(), // لاحظ التغيير هنا
     ),
   );
+}
+
+class MyRootApp extends StatelessWidget {
+  const MyRootApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

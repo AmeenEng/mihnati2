@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mihnati2/Components/color.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 import 'package:mihnati2/Onboarding/onboarding_items.dart';
 import 'package:mihnati2/screens/auth/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
@@ -20,13 +22,18 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final c = AppColors;
+
     return Scaffold(
-      backgroundColor: backGroundColor,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       bottomSheet: Container(
-        color: backGroundColor,
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         child: isLastPage
-            ? getStarted()
+            ? getStarted(isDark)
             : Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -35,12 +42,14 @@ class _OnboardingViewState extends State<OnboardingView> {
                     onPressed: () =>
                         pageController.jumpToPage(controller.items.length - 1),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: backGroundColor,
-                      foregroundColor: textColor,
+                      backgroundColor:
+                          isDark ? AppColors.darkCard : AppColors.lightCard,
+                      foregroundColor:
+                          isDark ? AppColors.darkText : AppColors.lightText,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      shadowColor: secondaryColor,
+                      elevation: 0,
                     ),
                     child: Text("تخطي"),
                   ),
@@ -56,7 +65,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                     effect: WormEffect(
                       dotHeight: 10,
                       dotWidth: 10,
-                      activeDotColor: primaryColor,
+                      activeDotColor: AppColors.primaryColor,
+                      dotColor: isDark ? Colors.grey[600]! : Colors.grey[300]!,
                     ),
                   ),
 
@@ -66,12 +76,14 @@ class _OnboardingViewState extends State<OnboardingView> {
                         duration: Duration(milliseconds: 500),
                         curve: Curves.easeIn),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: backGroundColor,
-                      foregroundColor: textColor,
+                      backgroundColor:
+                          isDark ? AppColors.darkCard : AppColors.lightCard,
+                      foregroundColor:
+                          isDark ? AppColors.darkText : AppColors.lightText,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      shadowColor: secondaryColor,
+                      elevation: 0,
                     ),
                     child: Text("التالي"),
                   ),
@@ -96,14 +108,15 @@ class _OnboardingViewState extends State<OnboardingView> {
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: textColor),
+                        color:
+                            isDark ? AppColors.darkText : AppColors.lightText),
                   ),
                   SizedBox(height: 15),
                   Text(
                     controller.items[index].descriptions,
                     style: TextStyle(
                       fontSize: 16,
-                      color: textColor2,
+                      color: isDark ? Colors.grey[300] : Colors.grey[600],
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -115,11 +128,12 @@ class _OnboardingViewState extends State<OnboardingView> {
     );
   }
 
-  Widget getStarted() {
+  Widget getStarted(bool isDark) {
+    final c = AppColors;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: primaryColor,
+        color: AppColors.primaryColor,
       ),
       width: MediaQuery.of(context).size.width * 0.8,
       child: TextButton(
@@ -138,7 +152,7 @@ class _OnboardingViewState extends State<OnboardingView> {
         },
         child: Text(
           "ابدأ الآن",
-          style: TextStyle(color: textColor),
+          style: TextStyle(color: Colors.white),
         ),
       ),
     );

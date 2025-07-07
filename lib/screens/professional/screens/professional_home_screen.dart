@@ -15,6 +15,9 @@ import 'package:mihnati2/screens/add_service_screen.dart';
 import 'package:mihnati2/screens/professional/widgets/professional_performance_card.dart';
 import 'package:mihnati2/screens/professional/widgets/customer_reviews_section.dart';
 import 'package:mihnati2/screens/professional/widgets/today_appointments.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class ProfessionalHomeScreen extends StatefulWidget {
   const ProfessionalHomeScreen({super.key});
@@ -356,8 +359,8 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
 
   void _logout() async {
     try {
-      await _notificationSubscription?.cancel(); // 💥
-      await FirebaseAuth.instance.signOut();
+      await _notificationSubscription?.cancel();
+      // await FirebaseAuth.instance.signOut();
       Future.delayed(Duration.zero, () {
         Get.offAllNamed('/login');
       });
@@ -411,9 +414,19 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final drawerColor = isDark ? AppColors.drawerDark : AppColors.drawerLight;
+    final primaryColor = AppColors.primaryColor;
+    final gradientColors = [primaryColor, primaryColor.withOpacity(0.8)];
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: backgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -422,7 +435,10 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
               const SizedBox(height: 20),
               Text(
                 'جاري تحميل البيانات...',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(color: textColor),
               ),
             ],
           ),
@@ -432,7 +448,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
 
     if (_hasError) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: backgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -441,7 +457,10 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
               const SizedBox(height: 20),
               Text(
                 'حدث خطأ في تحميل البيانات',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(color: textColor),
               ),
               const SizedBox(height: 10),
               const Text('تأكد من اتصالك بالإنترنت وحاول مرة أخرى'),
@@ -471,28 +490,39 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('مهنتي - للمهنيين',
+        title: Text('مهنتي - للمهنيين',
             style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white)),
+                fontWeight: FontWeight.bold, fontSize: 20, color: textColor)),
         centerTitle: true,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF1F3440), Color(0xFF3A7D8A)],
+              colors: gradientColors,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              themeProvider.isDarkMode
+                  ? Icons.wb_sunny
+                  : Icons.nightlight_round,
+              color: iconColor,
+            ),
+            tooltip:
+                themeProvider.isDarkMode ? 'الوضع النهاري' : 'الوضع الليلي',
+            onPressed: () {
+              themeProvider.toggleTheme();
+            },
+          ),
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.white),
+                icon: Icon(Icons.notifications_none, color: iconColor),
                 onPressed: () => Get.toNamed('/notifications'),
               ),
               if (_unreadNotifications > 0)
@@ -511,8 +541,8 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
                     ),
                     child: Text(
                       '$_unreadNotifications',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: textColor,
                         fontSize: 10,
                       ),
                       textAlign: TextAlign.center,
@@ -522,12 +552,13 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.person_outline, color: Colors.white),
+            icon: Icon(Icons.person_outline, color: iconColor),
             onPressed: () => Get.to(const ProfessionalProfileScreen()),
           ),
         ],
       ),
-      drawer: _buildDrawer(),
+      drawer: _buildDrawer(drawerColor, textColor, iconColor, cardColor,
+          primaryColor, gradientColors),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,6 +574,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             SectionHeader(
               title: 'مواعيد اليوم',
               onSeeAll: () => Get.toNamed('/appointments'),
+              textColor: AppColors.darkText,
             ),
             TodayAppointments(
               userId: currentUser?.uid ?? '',
@@ -553,6 +585,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             SectionHeader(
               title: 'خدماتي',
               onSeeAll: () => Get.toNamed('/services'),
+              textColor: textColor,
             ),
             _buildMyServices(),
 
@@ -560,6 +593,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             SectionHeader(
               title: 'تعليقات العملاء',
               onSeeAll: () => Get.toNamed('/reviews'),
+              textColor: textColor,
             ),
             CustomerReviewsSection(
               reviews: _reviews,
@@ -572,30 +606,32 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.to(const AddServiceScreen()),
-        backgroundColor: const Color(0xFF1F3440),
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: primaryColor,
+        child: Icon(Icons.add, color: iconColor),
       ),
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
+        backgroundColor: primaryColor,
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home, color: iconColor),
             label: 'الرئيسية',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_today, color: iconColor),
             label: 'المواعيد',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assessment),
+            icon: Icon(Icons.assessment, color: iconColor),
             label: 'الإحصائيات',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person, color: iconColor),
             label: 'الملف',
           ),
         ],
+        textColor: textColor,
       ),
     );
   }
@@ -663,131 +699,127 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _buildDrawer(Color drawerColor, Color textColor, Color iconColor,
+      Color cardColor, Color primaryColor, List<Color> gradientColors) {
     return Drawer(
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1F3440), Color(0xFF3A7D8A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: drawerColor,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // رأس الدرج
             UserAccountsDrawerHeader(
               accountName: Text(
                 currentUser?.displayName ?? 'اسم المستخدم',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
               ),
               accountEmail: Text(
                 currentUser?.email ?? 'البريد الإلكتروني',
-                style: const TextStyle(fontSize: 14),
+                style: TextStyle(fontSize: 14, color: textColor),
               ),
               currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Text(
-                  currentUser?.displayName?.substring(0, 1) ?? 'U',
-                  style: const TextStyle(
-                    fontSize: 40.0,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F3440),
-                  ),
-                ),
+                backgroundColor: cardColor,
+                backgroundImage: currentUser?.photoURL != null
+                    ? NetworkImage(currentUser!.photoURL!)
+                    : null,
+                child: currentUser?.photoURL == null
+                    ? Text(
+                        currentUser?.displayName?.substring(0, 1) ?? 'U',
+                        style: TextStyle(
+                          fontSize: 40.0,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      )
+                    : null,
               ),
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-              ),
-            ),
-
-            // قسم التنقل
-            _buildDrawerItem(
-              icon: Icons.home,
-              title: 'الرئيسية',
-              onTap: () {
-                Get.back();
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.calendar_today,
-              title: 'المواعيد',
-              onTap: () {
-                Get.back();
-                Get.toNamed('/appointments');
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.assessment,
-              title: 'الإحصائيات',
-              onTap: () {
-                Get.back();
-                Get.toNamed('/stats');
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.person,
-              title: 'الملف الشخصي',
-              onTap: () {
-                Get.back();
-                Get.to(const ProfessionalProfileScreen());
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.work,
-              title: 'خدماتي',
-              onTap: () {
-                Get.back();
-                Get.toNamed('/services');
-              },
-            ),
-
-            // قسم الإعدادات
-            const Padding(
-              padding: EdgeInsets.only(left: 16, top: 20, bottom: 8),
-              child: Text(
-                'الإعدادات',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: gradientColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
             ),
             _buildDrawerItem(
-              icon: Icons.settings,
-              title: 'الإعدادات',
-              onTap: () {
-                Get.back();
-                Get.to(const SettingsScreen());
-              },
-            ),
+                icon: Icons.home,
+                title: 'الرئيسية',
+                onTap: () {
+                  Get.back();
+                },
+                iconColor: iconColor,
+                textColor: textColor),
             _buildDrawerItem(
-              icon: Icons.help,
-              title: 'مساعدة',
-              onTap: () {
-                Get.back();
-                Get.toNamed('/help');
-              },
-            ),
+                icon: Icons.calendar_today,
+                title: 'المواعيد',
+                onTap: () {
+                  Get.back();
+                  Get.toNamed('/appointments');
+                },
+                iconColor: iconColor,
+                textColor: textColor),
             _buildDrawerItem(
-              icon: Icons.info,
-              title: 'حول التطبيق',
-              onTap: () {
-                Get.back();
-                Get.toNamed('/about');
-              },
-            ),
-
-            // تسجيل الخروج
-            const Divider(color: Colors.white24),
+                icon: Icons.assessment,
+                title: 'الإحصائيات',
+                onTap: () {
+                  Get.back();
+                  Get.toNamed('/stats');
+                },
+                iconColor: iconColor,
+                textColor: textColor),
             _buildDrawerItem(
-              icon: Icons.logout,
-              title: 'تسجيل الخروج',
+                icon: Icons.person,
+                title: 'الملف الشخصي',
+                onTap: () {
+                  Get.back();
+                  Get.to(const ProfessionalProfileScreen());
+                },
+                iconColor: iconColor,
+                textColor: textColor),
+            _buildDrawerItem(
+                icon: Icons.work,
+                title: 'خدماتي',
+                onTap: () {
+                  Get.back();
+                  Get.toNamed('/services');
+                },
+                iconColor: iconColor,
+                textColor: textColor),
+            const Divider(),
+            _buildDrawerItem(
+                icon: Icons.settings,
+                title: 'الإعدادات',
+                onTap: () {
+                  Get.back();
+                  Get.to(const SettingsScreen());
+                },
+                iconColor: iconColor,
+                textColor: textColor),
+            _buildDrawerItem(
+                icon: Icons.help,
+                title: 'مساعدة',
+                onTap: () {
+                  Get.back();
+                  Get.toNamed('/help');
+                },
+                iconColor: iconColor,
+                textColor: textColor),
+            _buildDrawerItem(
+                icon: Icons.info,
+                title: 'حول التطبيق',
+                onTap: () {
+                  Get.back();
+                  Get.toNamed('/about');
+                },
+                iconColor: iconColor,
+                textColor: textColor),
+            const Divider(),
+            ListTile(
+              leading: Icon(Icons.logout, color: Colors.red),
+              title: Text('تسجيل الخروج', style: TextStyle(color: Colors.red)),
               onTap: _logout,
             ),
           ],
@@ -800,15 +832,17 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    required Color iconColor,
+    required Color textColor,
   }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
+      leading: Icon(icon, color: iconColor),
       title: Text(
         title,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: textColor),
       ),
       onTap: onTap,
-      hoverColor: Colors.white.withOpacity(0.1),
+      hoverColor: textColor.withOpacity(0.1),
     );
   }
 }
