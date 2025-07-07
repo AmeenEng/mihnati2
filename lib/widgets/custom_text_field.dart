@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../Components/theme/theme_provider.dart';
+import '../Components/theme/app_colors.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -20,6 +23,11 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final fillColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -27,12 +35,14 @@ class CustomTextField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        style: TextStyle(color: textColor),
         decoration: InputDecoration(
           filled: true,
-          fillColor: const Color(0xFFD4DADD),
-          prefixIcon: Icon(prefixIcon ?? Icons.person),
-          suffixIcon: suffixIcon,  // تم التعديل هنا
+          fillColor: fillColor,
+          prefixIcon: Icon(prefixIcon ?? Icons.person, color: iconColor),
+          suffixIcon: suffixIcon, // تم التعديل هنا
           hintText: hintText,
+          hintStyle: TextStyle(color: textColor.withOpacity(0.6)),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(25),
             borderSide: BorderSide.none,

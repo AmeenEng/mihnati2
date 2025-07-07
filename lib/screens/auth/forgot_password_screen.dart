@@ -4,6 +4,9 @@ import '../../auth/providers/auth_provider.dart';
 import '../../utils/auth_error_handler.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import 'package:provider/provider.dart';
+import '../../Components/theme/theme_provider.dart';
+import '../../Components/theme/app_colors.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
   const ForgotPasswordScreen({super.key});
@@ -12,10 +15,22 @@ class ForgotPasswordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Get.find<AuthProvider2>();
     final emailController = TextEditingController();
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final primaryColor = AppColors.primaryColor;
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text('نسيت كلمة المرور'),
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: primaryColor),
+        titleTextStyle: TextStyle(
+            color: primaryColor, fontWeight: FontWeight.bold, fontSize: 20),
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -29,19 +44,20 @@ class ForgotPasswordScreen extends StatelessWidget {
                 height: 200,
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'نسيت كلمة المرور؟',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: primaryColor,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور',
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: textColor.withOpacity(0.7),
                   fontSize: 16,
                 ),
                 textAlign: TextAlign.center,

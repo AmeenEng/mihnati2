@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:get/get.dart';
+import '../routes.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
@@ -137,18 +139,11 @@ class _OnboardingViewState extends State<OnboardingView> {
       ),
       width: MediaQuery.of(context).size.width * 0.8,
       child: TextButton(
-        onPressed: () {
-          final prefs = SharedPreferences.getInstance();
-          prefs.then((value) {
-            value.setBool("onboarding", true);
-          });
-
-          if (!mounted) return;
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LoginScreen(),
-              ));
+        onPressed: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('hasSeenOnboarding', true);
+          // التوجيه باستخدام GetX لمسار تسجيل الدخول
+          Get.offAllNamed(AppRoutes.login);
         },
         child: Text(
           "ابدأ الآن",

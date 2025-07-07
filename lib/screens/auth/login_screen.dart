@@ -8,6 +8,9 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/social_auth_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../../Components/theme/theme_provider.dart';
+import '../../Components/theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -95,9 +98,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final authProvider = Get.find<AuthProvider2>();
     final size = MediaQuery.of(context).size;
-
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final primaryColor = AppColors.primaryColor;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
@@ -121,15 +130,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: size.width > 400 ? 30 : 26,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F3440),
+                  color: primaryColor,
                 ),
               ),
               SizedBox(height: size.height * 0.01),
               Text(
                 "يرجى تسجيل الدخول للمتابعة",
                 style: TextStyle(
-                    fontSize: size.width > 400 ? 16 : 14,
-                    color: const Color(0xFF1F3440)),
+                    fontSize: size.width > 400 ? 16 : 14, color: textColor),
               ),
               SizedBox(height: size.height * 0.03),
               CustomTextField(
@@ -147,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.grey,
+                    color: isDark ? AppColors.darkIcon : AppColors.lightIcon,
                   ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
@@ -157,7 +165,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerLeft,
                 child: TextButton(
                   onPressed: () => Get.to(() => const ForgotPasswordScreen()),
-                  child: const Text('نسيت كلمة المرور؟'),
+                  child: Text('نسيت كلمة المرور؟',
+                      style: TextStyle(color: primaryColor)),
                 ),
               ),
               SizedBox(height: size.height * 0.01),
@@ -166,13 +175,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     "تذكرني في المرة القادمة",
-                    style: TextStyle(fontSize: size.width > 400 ? 16 : 14),
+                    style: TextStyle(
+                        fontSize: size.width > 400 ? 16 : 14, color: textColor),
                   ),
                   Switch(
-                    activeColor: const Color(0xFF70797E),
-                    activeTrackColor: const Color(0xFF1F3440),
-                    inactiveThumbColor: const Color(0xFFBABDBE),
-                    inactiveTrackColor: const Color(0xFFD9E2E6),
+                    activeColor: primaryColor,
+                    activeTrackColor: primaryColor.withOpacity(0.5),
+                    inactiveThumbColor: cardColor,
+                    inactiveTrackColor: cardColor.withOpacity(0.5),
                     value: rememberMe,
                     onChanged: (value) => setState(() => rememberMe = value),
                   ),
@@ -197,13 +207,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     'ليس لديك حساب؟',
-                    style: TextStyle(fontSize: size.width > 400 ? 16 : 14),
+                    style: TextStyle(
+                        fontSize: size.width > 400 ? 16 : 14, color: textColor),
                   ),
                   TextButton(
                     onPressed: () => Get.toNamed(AppRoutes.register),
-                    child: const Text(
+                    child: Text(
                       'إنشاء حساب',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: primaryColor),
                     ),
                   ),
                 ],

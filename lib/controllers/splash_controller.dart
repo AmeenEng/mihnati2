@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../auth/providers/auth_provider.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashController extends GetxController {
   final AuthProvider2 _authProvider = Get.find<AuthProvider2>();
@@ -17,6 +18,13 @@ class SplashController extends GetxController {
     try {
       await Future.delayed(const Duration(seconds: 2));
       _isInitialized.value = true;
+
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+      if (!hasSeenOnboarding) {
+        Get.offAllNamed(AppRoutes.onboarding);
+        return;
+      }
 
       if (_authProvider.isAuthenticated) {
         final uid = FirebaseAuth.instance.currentUser?.uid;

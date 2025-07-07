@@ -8,6 +8,9 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/social_auth_button.dart';
 import '../auth/verify_email_screen.dart';
+import 'package:provider/provider.dart';
+import '../../Components/theme/theme_provider.dart';
+import '../../Components/theme/app_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -50,11 +53,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final authProvider = Get.find<AuthProvider2>();
     final size = MediaQuery.of(context).size;
-
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final primaryColor = AppColors.primaryColor;
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text('إنشاء حساب'),
         centerTitle: true,
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: primaryColor),
+        titleTextStyle: TextStyle(
+            color: primaryColor, fontWeight: FontWeight.bold, fontSize: 20),
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -79,6 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   fontSize: size.width > 400 ? 24 : 22,
                   fontWeight: FontWeight.bold,
+                  color: primaryColor,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -105,7 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.grey,
+                    color: isDark ? AppColors.darkIcon : AppColors.lightIcon,
                   ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
@@ -144,13 +160,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   Text(
                     'لديك حساب بالفعل؟',
-                    style: TextStyle(fontSize: size.width > 400 ? 16 : 14),
+                    style: TextStyle(
+                        fontSize: size.width > 400 ? 16 : 14, color: textColor),
                   ),
                   TextButton(
                     onPressed: () => Get.toNamed(AppRoutes.login),
-                    child: const Text(
+                    child: Text(
                       'تسجيل الدخول',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: primaryColor),
                     ),
                   ),
                 ],
