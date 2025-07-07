@@ -120,3 +120,7 @@ class AuthWrapper extends StatelessWidget {
     });
   }
 }
+
+// Developed by: Ameen AlAlimi (سيدي أمين)
+// GitHub: github.com/AmeenEng
+// Telegram: @AmeenDev
