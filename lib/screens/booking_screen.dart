@@ -5,6 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mihnati2/common/models/professional_model.dart';
 import 'package:mihnati2/common/models/service_model.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class BookingScreen extends StatefulWidget {
   final ProfessionalModel professional;
@@ -122,9 +125,19 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('حجز خدمة'),
+        title: Text('حجز خدمة', style: TextStyle(color: textColor)),
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: iconColor),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -133,48 +146,63 @@ class _BookingScreenState extends State<BookingScreen> {
           child: ListView(
             children: [
               ListTile(
-                title: const Text('المهني'),
-                subtitle: Text(widget.professional.name),
+                tileColor: cardColor,
+                title: Text('المهني', style: TextStyle(color: textColor)),
+                subtitle: Text(widget.professional.name,
+                    style: TextStyle(color: textColor)),
               ),
               ListTile(
-                title: const Text('الخدمة'),
-                subtitle: Text(widget.service.name),
+                tileColor: cardColor,
+                title: Text('الخدمة', style: TextStyle(color: textColor)),
+                subtitle: Text(widget.service.name,
+                    style: TextStyle(color: textColor)),
               ),
               ListTile(
-                title: const Text('التصنيف'),
-                subtitle: Text(widget.service.category),
+                tileColor: cardColor,
+                title: Text('التصنيف', style: TextStyle(color: textColor)),
+                subtitle: Text(widget.service.category,
+                    style: TextStyle(color: textColor)),
               ),
               ListTile(
-                title: const Text('السعر'),
-                subtitle:
-                    Text('${widget.service.price.toStringAsFixed(2)} ر.س'),
+                tileColor: cardColor,
+                title: Text('السعر', style: TextStyle(color: textColor)),
+                subtitle: Text('${widget.service.price.toStringAsFixed(2)} ر.س',
+                    style: TextStyle(color: AppColors.primaryColor)),
               ),
               ListTile(
-                title: const Text('التاريخ'),
+                tileColor: cardColor,
+                title: Text('التاريخ', style: TextStyle(color: textColor)),
                 subtitle: Text(
                   _selectedDate == null
                       ? 'اختر التاريخ'
                       : DateFormat('yyyy-MM-dd').format(_selectedDate!),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.calendar_today),
+                trailing: Icon(Icons.calendar_today, color: iconColor),
                 onTap: () => _selectDate(context),
               ),
               ListTile(
-                title: const Text('الوقت'),
+                tileColor: cardColor,
+                title: Text('الوقت', style: TextStyle(color: textColor)),
                 subtitle: Text(
                   _selectedTime == null
                       ? 'اختر الوقت'
                       : _selectedTime!.format(context),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.access_time),
+                trailing: Icon(Icons.access_time, color: iconColor),
                 onTap: () => _selectTime(context),
               ),
               TextFormField(
                 controller: _addressController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'العنوان',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: textColor),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: cardColor,
                 ),
+                style: TextStyle(color: textColor),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'الرجاء إدخال العنوان';
@@ -185,19 +213,25 @@ class _BookingScreenState extends State<BookingScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'ملاحظات إضافية (اختياري)',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: textColor),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: cardColor,
                 ),
+                style: TextStyle(color: textColor),
                 maxLines: 3,
               ),
               const SizedBox(height: 24),
               _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primaryColor))
                   : ElevatedButton(
                       onPressed: _submitBooking,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1F3440),
+                        backgroundColor: AppColors.primaryColor,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
                       child: const Text(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mihnati2/common/models/review_model.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class CustomerReviewCard extends StatelessWidget {
   final ReviewModel review;
@@ -9,7 +12,13 @@ class CustomerReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
     return Card(
+      color: cardColor,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -24,9 +33,10 @@ class CustomerReviewCard extends StatelessWidget {
               children: [
                 Text(
                   review.clientName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: textColor,
                   ),
                 ),
                 Row(
@@ -45,14 +55,14 @@ class CustomerReviewCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               review.comment,
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 14, color: textColor.withOpacity(0.9)),
             ),
             const SizedBox(height: 8),
             Text(
               DateFormat('yyyy/MM/dd - HH:mm').format(review.date.toDate()),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey,
+                color: textColor.withOpacity(0.6),
               ),
             ),
           ],

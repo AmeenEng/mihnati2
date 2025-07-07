@@ -5,6 +5,9 @@ import 'package:mihnati2/common/models/professional_model.dart';
 import 'package:mihnati2/common/models/service_model.dart';
 import 'package:mihnati2/common/models/review_model.dart';
 import 'package:mihnati2/screens/booking_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class ProfessionalDetailsScreen extends StatefulWidget {
   final ProfessionalModel professional;
@@ -78,10 +81,22 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text(widget.professional.name),
+        title:
+            Text(widget.professional.name, style: TextStyle(color: textColor)),
         centerTitle: true,
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: iconColor),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,10 +139,18 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
   }
 
   Widget _buildProfileHeader() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -142,12 +165,16 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
         children: [
           CircleAvatar(
             radius: 40,
-            backgroundColor: Colors.grey[200],
+            backgroundColor:
+                isDark ? AppColors.darkBackground : AppColors.primaryColor,
             backgroundImage: widget.professional.imageUrl.isNotEmpty
                 ? NetworkImage(widget.professional.imageUrl)
                 : null,
             child: widget.professional.imageUrl.isEmpty
-                ? const Icon(Icons.person, size: 40)
+                ? Icon(Icons.person,
+                    size: 40,
+                    color:
+                        isDark ? AppColors.secondaryColor : AppColors.darkIcon)
                 : null,
           ),
           const SizedBox(width: 16),
@@ -157,9 +184,10 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
               children: [
                 Text(
                   widget.professional.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -167,7 +195,7 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
                   widget.professional.profession,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey[600],
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -177,23 +205,24 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
                     const SizedBox(width: 4),
                     Text(
                       widget.professional.rating.toStringAsFixed(1),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: textColor),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '(${widget.professional.completedJobs} تقييم)',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: textColor),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.work, size: 18, color: Colors.grey),
+                    Icon(Icons.work, size: 18, color: iconColor),
                     const SizedBox(width: 4),
                     Text(
                       '${widget.professional.completedJobs} مهمة مكتملة',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: textColor),
                     ),
                   ],
                 ),
@@ -206,11 +235,19 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
   }
 
   Widget _buildServicesSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.lightIcon : AppColors.darkIcon;
+    final darkBackground =
+        isDark ? AppColors.lightBackground : AppColors.darkBackground;
+
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -224,9 +261,10 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'الخدمات المقدمة',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
           ),
           const SizedBox(height: 12),
           ..._services.map((service) => _buildServiceItem(service)).toList(),
@@ -236,13 +274,19 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
   }
 
   Widget _buildServiceItem(ServiceModel service) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final itemColor = isDark ? AppColors.darkBackground : Colors.grey[50];
+    final borderColor = isDark ? AppColors.darkCard : Colors.grey[200]!;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: itemColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.secondaryColor),
       ),
       child: Row(
         children: [
@@ -251,26 +295,30 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
                 service.name,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textColor),
               ),
               const SizedBox(height: 4),
               Text(
                 service.description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: textColor),
               ),
               const SizedBox(height: 4),
               Text(
                 'السعر: ${service.price} ر.س',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: AppColors.primaryColor),
               ),
             ]),
           ),
           ElevatedButton(
             onPressed: () => _bookProfessional(service),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1F3440),
+              backgroundColor: AppColors.primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -283,11 +331,16 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
   }
 
   Widget _buildReviewsSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -304,21 +357,26 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'التقييمات والتعليقات',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor),
               ),
               TextButton(
                 onPressed: () {},
-                child: const Text('عرض الكل'),
+                child: Text('عرض الكل',
+                    style: TextStyle(color: AppColors.primaryColor)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           ..._reviews.map((review) => _buildReviewItem(review)).toList(),
           if (_reviews.isEmpty)
-            const Center(
-              child: Text('لا توجد تعليقات بعد'),
+            Center(
+              child: Text('لا توجد تعليقات بعد',
+                  style: TextStyle(color: textColor)),
             ),
         ],
       ),
@@ -326,41 +384,52 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
   }
 
   Widget _buildReviewItem(ReviewModel review) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final textColor = isDark ? AppColors.lightText : AppColors.darkText;
+    final iconColor = isDark ? AppColors.lightIcon : AppColors.darkIcon;
+    final itemColor = isDark ? AppColors.darkBackground : Colors.grey[50];
+    final borderColor = isDark ? AppColors.darkCard : Colors.grey[200]!;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: itemColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.person, size: 24),
+              Icon(Icons.person, size: 24, color: iconColor),
               const SizedBox(width: 8),
               Text(
                 review.clientName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
               ),
               const Spacer(),
               Row(
                 children: [
                   const Icon(Icons.star, color: Colors.amber, size: 18),
                   const SizedBox(width: 4),
-                  Text(review.rating.toStringAsFixed(1)),
+                  Text(review.rating.toStringAsFixed(1),
+                      style: TextStyle(color: textColor)),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(review.comment),
+          Text(review.comment, style: TextStyle(color: textColor)),
           const SizedBox(height: 8),
           Text(
             review.date.toString().substring(0, 10),
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(
+                color: isDark
+                    ? AppColors.lightText.withOpacity(0.7)
+                    : Colors.grey[600]),
           ),
         ],
       ),
@@ -385,7 +454,7 @@ class _ProfessionalDetailsScreenState extends State<ProfessionalDetailsScreen> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1F3440),
+          backgroundColor: AppColors.primaryColor,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

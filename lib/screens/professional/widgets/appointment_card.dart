@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mihnati2/common/models/appointment_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class AppointmentCard extends StatelessWidget {
   final AppointmentModel appointment;
@@ -14,11 +17,18 @@ class AppointmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
     Color statusColor = Colors.grey;
     if (appointment.status == 'مؤكدة') statusColor = Colors.green;
     if (appointment.status == 'ملغاة') statusColor = Colors.red;
 
     return Card(
+      color: cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
       child: InkWell(
@@ -32,8 +42,8 @@ class AppointmentCard extends StatelessWidget {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: const Color(0xFF1F3440).withOpacity(0.1),
-                    child: const Icon(Icons.person, color: Color(0xFF1F3440)),
+                    backgroundColor: primaryColor.withOpacity(0.1),
+                    child: Icon(Icons.person, color: primaryColor),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -42,22 +52,24 @@ class AppointmentCard extends StatelessWidget {
                       children: [
                         Text(
                           appointment.clientName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
+                            color: textColor,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           appointment.clientPhone,
-                          style: const TextStyle(color: Colors.blue),
+                          style: TextStyle(color: primaryColor),
                         ),
                       ],
                     ),
                   ),
                   // حالة الموعد
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -72,42 +84,63 @@ class AppointmentCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const Divider(height: 24, thickness: 1),
-              
+              Divider(
+                  height: 24, thickness: 1, color: iconColor.withOpacity(0.2)),
+
               // تفاصيل الموعد
-              _buildDetailRow(Icons.work, appointment.serviceName),
-              _buildDetailRow(Icons.category, appointment.serviceCategory),
-              _buildDetailRow(Icons.calendar_today, '${appointment.date} | ${appointment.time}'),
-              _buildDetailRow(Icons.location_on, appointment.address),
-              _buildDetailRow(Icons.attach_money, '${appointment.price.toStringAsFixed(2)} ر.س'),
-              
+              _buildDetailRow(
+                  Icons.work, appointment.serviceName, iconColor, textColor),
+              _buildDetailRow(Icons.category, appointment.serviceCategory,
+                  iconColor, textColor),
+              _buildDetailRow(
+                  Icons.calendar_today,
+                  '${appointment.date} | ${appointment.time}',
+                  iconColor,
+                  textColor),
+              _buildDetailRow(
+                  Icons.location_on, appointment.address, iconColor, textColor),
+              _buildDetailRow(
+                  Icons.attach_money,
+                  '${appointment.price.toStringAsFixed(2)} ر.س',
+                  iconColor,
+                  textColor),
+
               // الملاحظات
               if (appointment.notes.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'ملاحظات:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, color: textColor),
                 ),
-                Text(appointment.notes),
+                Text(appointment.notes, style: TextStyle(color: textColor)),
               ],
-              
+
               // أزرار الإجراءات
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.phone),
-                      label: const Text('اتصال'),
+                      icon: Icon(Icons.phone, color: primaryColor),
+                      label:
+                          Text('اتصال', style: TextStyle(color: primaryColor)),
                       onPressed: () => _callClient(appointment.clientPhone),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: primaryColor),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.directions),
+                      icon: Icon(Icons.directions, color: Colors.white),
                       label: const Text('توجيه'),
                       onPressed: () => _openMap(appointment.address),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -119,14 +152,15 @@ class AppointmentCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String text) {
+  Widget _buildDetailRow(
+      IconData icon, String text, Color iconColor, Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey),
+          Icon(icon, size: 20, color: iconColor.withOpacity(0.7)),
           const SizedBox(width: 12),
-          Expanded(child: Text(text)),
+          Expanded(child: Text(text, style: TextStyle(color: textColor))),
         ],
       ),
     );

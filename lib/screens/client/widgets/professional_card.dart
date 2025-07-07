@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mihnati2/common/models/professional_model.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class ProfessionalCard extends StatelessWidget {
   final ProfessionalModel professional;
@@ -15,13 +18,21 @@ class ProfessionalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final Except = isDark ? AppColors.primaryColor : AppColors.primaryColor;
+    final backgroundColor =
+        isDark ? AppColors.secondaryColor : AppColors.primaryColor;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 150,
         margin: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
@@ -47,19 +58,13 @@ class ProfessionalCard extends StatelessWidget {
                         )
                       : Container(
                           height: 100,
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: Icon(Icons.person,
-                                size: 40, color: Colors.grey),
+                          color: backgroundColor,
+                          child: Center(
+                            child:
+                                Icon(Icons.person, size: 40, color: iconColor),
                           ),
                         ),
                 ),
-                if (professional.isFeatured)
-                  const Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Icon(Icons.verified, color: Colors.blue, size: 20),
-                  ),
               ],
             ),
             Padding(
@@ -69,18 +74,19 @@ class ProfessionalCard extends StatelessWidget {
                 children: [
                   Text(
                     professional.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
+                      color: textColor,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     professional.profession,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey,
+                      color: Except,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -93,12 +99,12 @@ class ProfessionalCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             professional.rating.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 12, color: textColor),
                           ),
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.bookmark_add, size: 18),
+                        icon: Icon(Icons.bookmark_add, size: 18, color: Except),
                         onPressed: onBookPressed,
                       ),
                     ],

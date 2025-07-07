@@ -4,12 +4,16 @@ class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
   final List<BottomNavigationBarItem> items;
+  final Color backgroundColor;
+  final Color textColor;
 
   const CustomBottomNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
     required this.items,
+    required this.backgroundColor,
+    required this.textColor,
   });
 
   @override
@@ -18,11 +22,12 @@ class CustomBottomNav extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF1F3440),
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: textColor,
+      unselectedItemColor: textColor.withOpacity(0.6),
       showSelectedLabels: true,
       showUnselectedLabels: true,
       items: items,
+      backgroundColor: backgroundColor,
     );
   }
 }

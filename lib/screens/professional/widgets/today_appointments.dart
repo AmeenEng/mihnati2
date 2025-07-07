@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:mihnati2/common/models/appointment_model.dart';
 import 'package:mihnati2/screens/appointment_details_screen.dart';
 import 'package:mihnati2/screens/professional/widgets/appointment_card.dart';
+import 'package:provider/provider.dart';
+import 'package:mihnati2/Components/theme/theme_provider.dart';
+import 'package:mihnati2/Components/theme/app_colors.dart';
 
 class TodayAppointments extends StatelessWidget {
   final String userId;
@@ -18,6 +21,15 @@ class TodayAppointments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
+    final borderColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final errorColor = Colors.red;
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     return StreamBuilder<QuerySnapshot>(
@@ -28,83 +40,81 @@ class TodayAppointments extends StatelessWidget {
           .orderBy('time')
           .snapshots(),
       builder: (context, snapshot) {
-        // حالة التحميل
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
-        // معالجة الأخطاء بشكل متكامل مع تجربة المستخدم
         if (snapshot.hasError) {
           final error = snapshot.error;
           print('Appointments Error: $error');
-
-          // محاولة جلب البيانات بدون ترتيب إذا كان الخطأ بسبب الفهرس
           if (error is FirebaseException &&
               error.code == 'failed-precondition') {
-            return _buildFallbackAppointments(today);
+            return _buildFallbackAppointments(
+                today, cardColor, textColor, iconColor, errorColor);
           }
-
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                const Text('حدث خطأ في تحميل المواعيد'),
+                Text('حدث خطأ في تحميل المواعيد',
+                    style: TextStyle(color: errorColor)),
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () => Get.forceAppUpdate(),
-                  child: const Text('إعادة المحاولة'),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: primaryColor),
+                  child: Text('إعادة المحاولة',
+                      style: TextStyle(color: textColor)),
                 ),
               ],
             ),
           );
         }
-
-        // حالة عدم وجود مواعيد
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text('لا توجد مواعيد لهذا اليوم'),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text('لا توجد مواعيد لهذا اليوم',
+                style: TextStyle(color: textColor.withOpacity(0.7))),
           );
         }
-
-        return _buildAppointmentsList(snapshot.data!.docs);
+        return _buildAppointmentsList(
+            snapshot.data!.docs, cardColor, textColor, iconColor, primaryColor);
       },
     );
   }
 
-  Widget _buildFallbackAppointments(String today) {
+  Widget _buildFallbackAppointments(String today, Color cardColor,
+      Color textColor, Color iconColor, Color errorColor) {
     return StreamBuilder<QuerySnapshot>(
       stream: firestore
           .collection('bookings')
           .where('professionalId', isEqualTo: userId)
-          // .where('date', isEqualTo: today)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text('لا توجد مواعيد لهذا اليوم'),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text('لا توجد مواعيد لهذا اليوم',
+                style: TextStyle(color: errorColor)),
           );
         }
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text('لا توجد مواعيد لهذا اليوم'),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text('لا توجد مواعيد لهذا اليوم',
+                style: TextStyle(color: textColor.withOpacity(0.7))),
           );
         }
-
-        return _buildAppointmentsList(snapshot.data!.docs);
+        return _buildAppointmentsList(
+            snapshot.data!.docs, cardColor, textColor, iconColor, errorColor);
       },
     );
   }
 
-  // دالة لبناء قائمة المواعيد مع الترتيب اليدوي
-  Widget _buildAppointmentsList(List<QueryDocumentSnapshot> docs) {
+  Widget _buildAppointmentsList(List<QueryDocumentSnapshot> docs,
+      Color cardColor, Color textColor, Color iconColor, Color primaryColor) {
     try {
       final appointments = docs
           .map((doc) {
@@ -118,39 +128,47 @@ class TodayAppointments extends StatelessWidget {
           .where((appointment) => appointment != null)
           .cast<AppointmentModel>()
           .toList();
-
       if (appointments.isEmpty) {
-        return const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('لا توجد مواعيد صالحة لهذا اليوم'),
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text('لا توجد مواعيد صالحة لهذا اليوم',
+              style: TextStyle(color: textColor.withOpacity(0.7))),
         );
       }
-
-      // ترتيب المواعيد يدوياً حسب الوقت
       appointments.sort((a, b) {
         final timeFormat = DateFormat('HH:mm');
         final aTime = timeFormat.parse(a.time);
         final bTime = timeFormat.parse(b.time);
         return aTime.compareTo(bTime);
       });
-
       return ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: appointments.length,
         itemBuilder: (context, index) {
-          return AppointmentCard(
-            appointment: appointments[index],
-            onTap: () => Get.to(
-                AppointmentDetailsScreen(appointment: appointments[index])),
+          return Card(
+            color: cardColor,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              leading: Icon(Icons.event, color: primaryColor),
+              title: Text(appointments[index].serviceName,
+                  style: TextStyle(color: textColor)),
+              subtitle: Text(
+                  '${appointments[index].date} | ${appointments[index].time}',
+                  style: TextStyle(color: textColor.withOpacity(0.7))),
+              trailing: Icon(Icons.arrow_forward_ios, color: iconColor),
+              onTap: () => Get.to(
+                  AppointmentDetailsScreen(appointment: appointments[index])),
+            ),
           );
         },
       );
     } catch (e) {
       print('Data processing error: $e');
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text('حدث خطأ في معالجة بيانات المواعيد'),
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text('حدث خطأ في معالجة بيانات المواعيد',
+            style: TextStyle(color: Colors.red)),
       );
     }
   }
