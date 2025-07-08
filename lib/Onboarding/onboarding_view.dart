@@ -44,8 +44,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                     onPressed: () =>
                         pageController.jumpToPage(controller.items.length - 1),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark ? AppColors.darkCard : AppColors.lightCard,
+                      backgroundColor: AppColors.secondaryColor,
                       foregroundColor:
                           isDark ? AppColors.darkText : AppColors.lightText,
                       shape: RoundedRectangleBorder(
@@ -78,8 +77,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                         duration: Duration(milliseconds: 500),
                         curve: Curves.easeIn),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark ? AppColors.darkCard : AppColors.lightCard,
+                      backgroundColor: AppColors.secondaryColor,
                       foregroundColor:
                           isDark ? AppColors.darkText : AppColors.lightText,
                       shape: RoundedRectangleBorder(

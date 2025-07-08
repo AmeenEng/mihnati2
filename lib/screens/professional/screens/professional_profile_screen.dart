@@ -6,6 +6,7 @@ import 'package:mihnati2/screens/professional/screens/settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:mihnati2/Components/theme/theme_provider.dart';
 import 'package:mihnati2/Components/theme/app_colors.dart';
+import 'package:mihnati2/screens/edit_profile_screen.dart';
 
 class ProfessionalProfileScreen extends StatefulWidget {
   const ProfessionalProfileScreen({super.key});
@@ -20,12 +21,18 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
   final _auth = FirebaseAuth.instance;
   late User _currentUser;
 
-  String _fullName = 'مهني محترف';
+  String _fullName = '';
+  String _email = '';
+  String _phone = '';
+  String _location = '';
+  List<String> _services = [];
   String _bio = 'أهلا، أنا محترف في خدماتي';
   int _completedJobs = 0;
   double _rating = 0.0;
   int _experienceYears = 0;
   bool _isLoading = true;
+  int _totalAppointments = 0;
+  int _totalServices = 0;
 
   @override
   void initState() {
@@ -38,64 +45,50 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
     try {
       final userDoc =
           await _firestore.collection('users').doc(_currentUser.uid).get();
-
-      if (userDoc.exists) {
+      final data = userDoc.data() ?? {};
+      if (userDoc.exists && mounted) {
         setState(() {
-          _fullName =
-              userDoc['name'] ?? _currentUser.displayName ?? 'مهني محترف';
-          _bio = userDoc['bio'] ?? 'أهلا، أنا محترف في خدماتي';
+          _fullName = data['fullName'] ?? '';
+          _email = data['email'] ?? _currentUser.email ?? '';
+          _phone = data['phone'] ?? '';
+          _location = data['location'] ?? '';
+          _services = data['services'] != null
+              ? List<String>.from(data['services'])
+              : [];
+          _bio = data['bio'] ?? '';
         });
       }
-
-      // جلب عدد المهام المكتملة
-      final jobsDoc = await _firestore
-          .collection('users')
-          .doc(_currentUser.uid)
-          .collection('stats')
-          .doc('jobs')
+      // عدد المواعيد
+      final appointmentsSnap = await _firestore
+          .collection('bookings')
+          .where('professionalId', isEqualTo: _currentUser.uid)
           .get();
-
-      if (jobsDoc.exists) {
+      print('عدد المواعيد: ${appointmentsSnap.docs.length}');
+      if (mounted) {
         setState(() {
-          _completedJobs = jobsDoc['completed'] ?? 0;
+          _totalAppointments = appointmentsSnap.docs.length;
         });
       }
-
-      // جلب التقييمات
-      final ratingsDoc = await _firestore
-          .collection('users')
-          .doc(_currentUser.uid)
-          .collection('stats')
-          .doc('ratings')
+      // عدد الخدمات
+      final servicesSnap = await _firestore
+          .collection('services')
+          .where('professionalId', isEqualTo: _currentUser.uid)
           .get();
-
-      if (ratingsDoc.exists) {
-        final total = ratingsDoc['total'] ?? 0.0;
-        final count = ratingsDoc['count'] ?? 0;
+      print('عدد الخدمات: ${servicesSnap.docs.length}');
+      if (mounted) {
         setState(() {
-          _rating = count > 0 ? total / count : 0.0;
+          _totalServices = servicesSnap.docs.length;
         });
       }
-
-      // جلب سنوات الخبرة
-      final expDoc = await _firestore
-          .collection('users')
-          .doc(_currentUser.uid)
-          .collection('professional_info')
-          .doc('experience')
-          .get();
-
-      if (expDoc.exists) {
-        setState(() {
-          _experienceYears = expDoc['years'] ?? 0;
-        });
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
-
-      setState(() => _isLoading = false);
     } catch (e) {
       print('Error loading profile data: $e');
-      Get.snackbar('خطأ', 'حدث خطأ في تحميل بيانات الملف الشخصي');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        Get.snackbar('خطأ', 'حدث خطأ في تحميل بيانات الملف الشخصي: $e');
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -125,6 +118,16 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
         title: Text('ملف المهني', style: TextStyle(color: textColor)),
         centerTitle: true,
         iconTheme: IconThemeData(color: iconColor),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit, color: primaryColor),
+            tooltip: 'تعديل الملف',
+            onPressed: () async {
+              await Get.to(() => const EditProfileScreen());
+              _loadProfileData();
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -132,54 +135,75 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: cardColor,
-                    backgroundImage: _currentUser.photoURL != null
-                        ? NetworkImage(_currentUser.photoURL!)
-                        : null,
-                    child: _currentUser.photoURL == null
-                        ? Icon(Icons.person, size: 60, color: iconColor)
-                        : null,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    _fullName,
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: textColor),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    child: Text(
-                      _bio,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: textColor.withOpacity(0.7)),
+                  // دائرة حول أيقونة البروفايل
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: cardColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: primaryColor, width: 2),
+                    ),
+                    child: Center(
+                      child: Icon(Icons.person, size: 60, color: iconColor),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildStatItem(_rating.toStringAsFixed(1), 'التقييم',
-                          textColor, primaryColor),
-                      _buildStatItem(
-                          '$_completedJobs', 'المهام', textColor, primaryColor),
-                      _buildStatItem('$_experienceYears سنوات', 'الخبرة',
-                          textColor, primaryColor),
-                    ],
+                  const SizedBox(height: 15),
+                  _buildInfoRow(Icons.person, 'الاسم الكامل', _fullName,
+                      textColor, iconColor),
+                  _buildInfoRow(Icons.email, 'البريد الإلكتروني', _email,
+                      textColor, iconColor),
+                  _buildInfoRow(
+                      Icons.phone, 'رقم الهاتف', _phone, textColor, iconColor),
+                  _buildInfoRow(Icons.location_on, 'المدينة/المنطقة', _location,
+                      textColor, iconColor),
+                  // عرض عدد المواعيد وعدد الخدمات
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                    child: Row(
+                      children: [
+                        Icon(Icons.event_note, color: iconColor),
+                        const SizedBox(width: 10),
+                        Text('عدد المواعيد: ',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, color: textColor)),
+                        Text('$_totalAppointments',
+                            style: TextStyle(color: textColor)),
+                        const SizedBox(width: 24),
+                        Icon(Icons.home_repair_service, color: iconColor),
+                        const SizedBox(width: 10),
+                        Text('عدد الخدمات: ',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, color: textColor)),
+                        Text('$_totalServices',
+                            style: TextStyle(color: textColor)),
+                      ],
+                    ),
                   ),
+                  // عرض الخدمات كسطر نصي مفصول بفواصل بدون كلمة تنظيف
+                  if (_services.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 6),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          _services.where((s) => s != 'تنظيف').join('، '),
+                          style: TextStyle(
+                              color: textColor, fontWeight: FontWeight.w500),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 30),
-                  _buildProfileItem(Icons.badge, 'الملف المهني',
-                      () => Get.toNamed('/edit-profile'), textColor, iconColor),
-                  _buildProfileItem(Icons.work_history, 'سجل الأعمال',
-                      () => Get.toNamed('/work-history'), textColor, iconColor),
-                  _buildProfileItem(Icons.analytics, 'الإحصائيات',
-                      () => Get.toNamed('/stats'), textColor, iconColor),
-                  _buildProfileItem(Icons.credit_card, 'المدفوعات',
-                      () => Get.toNamed('/payments'), textColor, iconColor),
                   _buildProfileItem(
                       Icons.settings,
                       'إعدادات الحساب',
@@ -192,6 +216,53 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value,
+      Color textColor, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor),
+          const SizedBox(width: 10),
+          Text('$label: ',
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          Expanded(
+            child: Text(value,
+                style: TextStyle(color: textColor),
+                overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServicesRow(
+      List<String> services, Color textColor, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.handyman, color: iconColor),
+          const SizedBox(width: 10),
+          Text('الخدمات: ',
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          Expanded(
+            child: services.isEmpty
+                ? Text('لا توجد خدمات', style: TextStyle(color: textColor))
+                : Wrap(
+                    spacing: 6,
+                    children: services
+                        .map((s) => Chip(
+                            label: Text(s, style: TextStyle(color: textColor))))
+                        .toList(),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 

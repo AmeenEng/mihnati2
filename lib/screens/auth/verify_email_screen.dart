@@ -6,6 +6,9 @@ import 'package:mihnati2/auth/providers/auth_provider.dart';
 import 'package:mihnati2/screens/auth/CompleteProfileScreen.dart';
 // import 'package:mihnati2/screens/home/home_screen.dart';
 import 'package:mihnati2/screens/auth/login_screen.dart';
+import 'package:provider/provider.dart';
+import '../../Components/theme/theme_provider.dart';
+import '../../Components/theme/app_colors.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
   const VerifyEmailScreen({super.key});
@@ -20,7 +23,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   bool _isResending = false;
   bool _isChecking = false;
   int _checkAttempts = 0;
-  final int _maxCheckAttempts = 12; 
+  final int _maxCheckAttempts = 12;
 
   @override
   void initState() {
@@ -112,25 +115,40 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   @override
   Widget build(BuildContext context) {
     final user = authProvider.user;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final primaryColor = AppColors.primaryColor;
 
     if (user == null) {
       return Scaffold(
-        body: Center(child: Text(tr('noUserFound'))),
+        backgroundColor: backgroundColor,
+        body: Center(
+            child: Text('لم يتم العثور على مستخدم',
+                style: TextStyle(color: textColor))),
       );
     }
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text(tr('verifyEmail')),
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: primaryColor),
+        title: Text('تأكيد البريد الإلكتروني',
+            style: TextStyle(color: primaryColor)),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            color: primaryColor,
             onPressed: () {
               authProvider.signOut();
               Get.offAll(const LoginScreen());
             },
           ),
         ],
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -140,12 +158,12 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
             Icon(
               Icons.mark_email_unread_outlined,
               size: 100,
-              color: Theme.of(context).primaryColor,
+              color: primaryColor,
             ),
             const SizedBox(height: 30),
             Text(
-              tr('verifyEmailMessage', args: [user.email ?? '']),
-              style: const TextStyle(fontSize: 18),
+              'تم إرسال رسالة تأكيد إلى بريدك الإلكتروني:\n${user.email ?? ''}\nيرجى التحقق من بريدك وتأكيد الحساب.',
+              style: TextStyle(fontSize: 18, color: textColor),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -154,7 +172,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                 children: [
                   const CircularProgressIndicator(),
                   const SizedBox(height: 20),
-                  Text(tr('checkingVerification')),
+                  Text('جاري التحقق من التفعيل...',
+                      style: TextStyle(color: textColor)),
                 ],
               ),
             const SizedBox(height: 30),
@@ -167,11 +186,14 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                           color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.email_outlined),
-              label: Text(
-                  _isResending ? tr('resending') : tr('resendVerification')),
+              label: Text(_isResending
+                  ? 'جاري إعادة الإرسال...'
+                  : 'إعادة إرسال رسالة التأكيد'),
               onPressed: _isResending ? null : _resendVerification,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
               ),
             ),
             const SizedBox(height: 20),
@@ -184,7 +206,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(tr('checkManually')),
+                  Text('التحقق يدوياً', style: TextStyle(color: primaryColor)),
                   if (_isChecking)
                     const Padding(
                       padding: EdgeInsets.only(left: 10),
@@ -203,7 +225,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                 authProvider.signOut();
                 Get.offAll(const LoginScreen());
               },
-              child: Text(tr('signOut')),
+              style: OutlinedButton.styleFrom(foregroundColor: primaryColor),
+              child: const Text('تسجيل الخروج'),
             ),
           ],
         ),

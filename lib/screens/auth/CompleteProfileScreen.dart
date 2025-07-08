@@ -5,6 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../routes.dart';
+import 'package:provider/provider.dart';
+import '../../Components/theme/theme_provider.dart';
+import '../../Components/theme/app_colors.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   const CompleteProfileScreen({super.key});
@@ -22,6 +25,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   List<String> _selectedServices = [];
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
+  String? _customService; // خدمة مخصصة
 
   // قائمة الخدمات المتاحة (للمهنيين)
   final List<String> _availableServices = [
@@ -74,8 +78,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             'phone': _phoneController.text,
             'type': _selectedUserType,
             'location': _locationController.text,
-            'rating': 4.5, 
-            'reviewCount': 0, 
+            'rating': 4.5,
+            'reviewCount': 0,
             'createdAt': FieldValue.serverTimestamp(),
             'services':
                 _selectedUserType == 'professional' ? _selectedServices : [],
@@ -105,10 +109,24 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text('اكمال الملف الشخصي'),
         centerTitle: true,
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: primaryColor),
+        titleTextStyle: TextStyle(
+            color: primaryColor, fontWeight: FontWeight.bold, fontSize: 20),
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -123,13 +141,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: cardColor,
                       backgroundImage: _profileImage != null
                           ? FileImage(_profileImage!)
                           : null,
                       child: _profileImage == null
-                          ? const Icon(Icons.person,
-                              size: 60, color: Colors.grey)
+                          ? Icon(Icons.person, size: 60, color: iconColor)
                           : null,
                     ),
                     Positioned(
@@ -137,12 +154,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       right: 0,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: primaryColor,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: IconButton(
-                          icon:
-                              const Icon(Icons.camera_alt, color: Colors.white),
+                          icon: Icon(Icons.camera_alt, color: Colors.white),
                           onPressed: _pickImage,
                         ),
                       ),
@@ -151,17 +167,21 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Divider(),
+              Divider(color: cardColor.withOpacity(0.5)),
               const SizedBox(height: 20),
 
               // حقل الاسم الكامل
               TextFormField(
                 controller: _fullNameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'الاسم الكامل',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person, color: iconColor),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: cardColor,
+                  labelStyle: TextStyle(color: textColor),
                 ),
+                style: TextStyle(color: textColor),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'يرجى إدخال الاسم الكامل';
@@ -174,11 +194,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               // حقل الهاتف
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'الهاتف',
-                  prefixIcon: Icon(Icons.phone),
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone, color: iconColor),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: cardColor,
+                  labelStyle: TextStyle(color: textColor),
                 ),
+                style: TextStyle(color: textColor),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -194,11 +218,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               // حقل الموقع
               TextFormField(
                 controller: _locationController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'المدينة أو المنطقة',
-                  prefixIcon: Icon(Icons.location_on),
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on, color: iconColor),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: cardColor,
+                  labelStyle: TextStyle(color: textColor),
                 ),
+                style: TextStyle(color: textColor),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'يرجى إدخال المدينة أو المنطقة';
@@ -211,19 +239,23 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               // اختيار نوع المستخدم
               DropdownButtonFormField<String>(
                 value: _selectedUserType,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'نوع المستخدم',
-                  prefixIcon: Icon(Icons.group),
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.group, color: iconColor),
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: cardColor,
+                  labelStyle: TextStyle(color: textColor),
                 ),
+                dropdownColor: cardColor,
                 items: [
                   DropdownMenuItem(
                     value: 'client',
                     child: Row(
                       children: [
-                        const Icon(Icons.person, color: Colors.blue),
+                        Icon(Icons.person, color: primaryColor),
                         const SizedBox(width: 10),
-                        const Text('عميل'),
+                        Text('عميل', style: TextStyle(color: textColor)),
                       ],
                     ),
                   ),
@@ -231,19 +263,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     value: 'professional',
                     child: Row(
                       children: [
-                        const Icon(Icons.handyman, color: Colors.green),
+                        Icon(Icons.handyman, color: Colors.green),
                         const SizedBox(width: 10),
-                        const Text('مهني'),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'employer',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.business, color: Colors.orange),
-                        const SizedBox(width: 10),
-                        const Text('صاحب عمل'),
+                        Text('مهني', style: TextStyle(color: textColor)),
                       ],
                     ),
                   ),
@@ -271,10 +293,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'الخدمات المقدمة',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -283,7 +307,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       children: _availableServices.map((service) {
                         final isSelected = _selectedServices.contains(service);
                         return FilterChip(
-                          label: Text(service),
+                          label: Text(service,
+                              style: TextStyle(
+                                  color:
+                                      isSelected ? Colors.white : textColor)),
                           selected: isSelected,
                           onSelected: (selected) {
                             setState(() {
@@ -294,10 +321,68 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                               }
                             });
                           },
-                          selectedColor: Colors.green[100],
-                          checkmarkColor: Colors.green,
+                          selectedColor: primaryColor,
+                          backgroundColor: cardColor,
+                          checkmarkColor: Colors.white,
                         );
                       }).toList(),
+                    ),
+                    // زر أخرى
+                    FilterChip(
+                      label: Text('أخرى',
+                          style: TextStyle(
+                              color: _customService != null
+                                  ? Colors.white
+                                  : textColor)),
+                      selected: _customService != null,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (!selected) {
+                            if (_customService != null) {
+                              _selectedServices.remove(_customService);
+                              _customService = null;
+                            }
+                          } else {
+                            // إظهار حقل إدخال نصي
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                final controller = TextEditingController();
+                                return AlertDialog(
+                                  title: const Text('أدخل اسم الخدمة'),
+                                  content: TextField(
+                                    controller: controller,
+                                    decoration: const InputDecoration(
+                                        hintText: 'مثال: أعمال زجاج'),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('إلغاء'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        final value = controller.text.trim();
+                                        if (value.isNotEmpty) {
+                                          setState(() {
+                                            _customService = value;
+                                            _selectedServices.add(value);
+                                          });
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      child: const Text('إضافة'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        });
+                      },
+                      selectedColor: primaryColor,
+                      backgroundColor: cardColor,
+                      checkmarkColor: Colors.white,
                     ),
                     if (_selectedServices.isEmpty)
                       const Text(
@@ -314,7 +399,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F3440),
+                    backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

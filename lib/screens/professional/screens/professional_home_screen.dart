@@ -574,7 +574,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             SectionHeader(
               title: 'مواعيد اليوم',
               onSeeAll: () => Get.toNamed('/appointments'),
-              textColor: AppColors.darkText,
+              textColor: textColor,
             ),
             TodayAppointments(
               userId: currentUser?.uid ?? '',

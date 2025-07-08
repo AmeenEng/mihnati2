@@ -8,6 +8,9 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:provider/provider.dart';
+import '../Components/theme/app_colors.dart';
+import '../Components/theme/theme_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -26,6 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isLoading = false;
   String? _selectedUserType;
   List<String> _selectedServices = [];
+  String? _customService; // خدمة مخصصة
 
   final List<String> _availableServices = [
     'كهرباء',
@@ -258,24 +262,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+    final backgroundColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final iconColor = isDark ? AppColors.darkIcon : AppColors.lightIcon;
+    final primaryColor = AppColors.primaryColor;
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text('تعديل الملف الشخصي',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF1F3440), Color(0xFF3A7D8A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: cardColor,
+        iconTheme: IconThemeData(color: iconColor),
+        titleTextStyle: TextStyle(
+            color: primaryColor, fontWeight: FontWeight.bold, fontSize: 20),
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.save, color: Colors.white),
+            icon: Icon(Icons.save, color: primaryColor),
             onPressed: _isLoading ? null : _saveProfile,
           ),
         ],
@@ -413,41 +421,109 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'الخدمات المقدمة:',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F3440),
+                              color: textColor,
                             ),
                           ),
                           const SizedBox(height: 15),
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
-                            children: _availableServices.map((service) {
-                              final isSelected =
-                                  _selectedServices.contains(service);
-                              return ChoiceChip(
-                                label: Text(service),
-                                selected: isSelected,
+                            children: [
+                              ..._availableServices.map((service) {
+                                final isSelected =
+                                    _selectedServices.contains(service);
+                                return ChoiceChip(
+                                  label: Text(service,
+                                      style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : textColor)),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      if (selected) {
+                                        _selectedServices.add(service);
+                                      } else {
+                                        _selectedServices.remove(service);
+                                      }
+                                    });
+                                  },
+                                  selectedColor: primaryColor,
+                                  backgroundColor: cardColor,
+                                  labelStyle: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : textColor),
+                                );
+                              }).toList(),
+                              // زر أخرى
+                              FilterChip(
+                                label: Text('أخرى',
+                                    style: TextStyle(
+                                        color: _customService != null
+                                            ? Colors.white
+                                            : textColor)),
+                                selected: _customService != null,
                                 onSelected: (selected) {
                                   setState(() {
-                                    if (selected) {
-                                      _selectedServices.add(service);
+                                    if (!selected) {
+                                      if (_customService != null) {
+                                        _selectedServices
+                                            .remove(_customService);
+                                        _customService = null;
+                                      }
                                     } else {
-                                      _selectedServices.remove(service);
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          final controller =
+                                              TextEditingController();
+                                          return AlertDialog(
+                                            title:
+                                                const Text('أدخل اسم الخدمة'),
+                                            content: TextField(
+                                              controller: controller,
+                                              decoration: const InputDecoration(
+                                                  hintText: 'مثال: أعمال زجاج'),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                                child: const Text('إلغاء'),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  final value =
+                                                      controller.text.trim();
+                                                  if (value.isNotEmpty) {
+                                                    setState(() {
+                                                      _customService = value;
+                                                      _selectedServices
+                                                          .add(value);
+                                                    });
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                                child: const Text('إضافة'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
                                     }
                                   });
                                 },
-                                selectedColor: const Color(0xFF1F3440),
-                                labelStyle: TextStyle(
-                                  color:
-                                      isSelected ? Colors.white : Colors.black,
-                                ),
-                                backgroundColor: Colors.grey[200],
-                              );
-                            }).toList(),
+                                selectedColor: primaryColor,
+                                backgroundColor: cardColor,
+                                checkmarkColor: Colors.white,
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 20),
                         ],
