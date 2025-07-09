@@ -16,6 +16,7 @@ import 'package:mihnati2/screens/profile_screen.dart';
 import 'package:mihnati2/screens/service_details_screen.dart';
 import 'package:mihnati2/screens/booking_screen.dart';
 import 'package:mihnati2/screens/client/screens/client_home_screen.dart';
+import 'package:mihnati2/screens/client/screens/client_edit_profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:mihnati2/Components/theme/theme_provider.dart';
 import 'package:mihnati2/Components/theme/app_colors.dart';
@@ -49,21 +50,27 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     'دهان'
   ];
 
+  String _fullName = '';
+  String _email = '';
+  String _phone = '';
+  String _location = '';
+  bool _isLoadingProfile = true;
+
   @override
   void initState() {
     super.initState();
     _loadBookingCount();
     _loadServices();
     _loadProfessionals();
+    _loadClientProfile();
   }
 
   Future<void> _loadBookingCount() async {
     if (currentUser == null) return;
 
     final snapshot = await _firestore
-        .collection('users')
-        .doc(currentUser!.uid)
         .collection('bookings')
+        .where('clientId', isEqualTo: currentUser!.uid)
         .get();
 
     setState(() => _bookingCount = snapshot.docs.length);
@@ -105,6 +112,34 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       _allProfessionals = allProfessionals;
       _filteredProfessionals = allProfessionals;
     });
+  }
+
+  Future<void> _loadClientProfile() async {
+    if (currentUser == null) return;
+    try {
+      final userDoc =
+          await _firestore.collection('users').doc(currentUser!.uid).get();
+      final data = userDoc.data() ?? {};
+      setState(() {
+        _fullName = data['fullName'] ?? currentUser!.displayName ?? '';
+        _email = data['email'] ?? currentUser!.email ?? '';
+        _phone = data['phone'] ?? '';
+        _location = data['location'] ?? '';
+        _isLoadingProfile = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingProfile = false);
+      Get.snackbar('خطأ', 'حدث خطأ في تحميل بيانات العميل: $e');
+    }
+  }
+
+  void _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Get.offAllNamed('/login');
+    } catch (e) {
+      Get.snackbar('خطأ', 'حدث خطأ أثناء تسجيل الخروج');
+    }
   }
 
   void _filterServices() {
@@ -405,7 +440,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             ),
 
             // بطاقة بالمستخدم
-            _buildWelcomeCard(),
+            _buildClientProfileCard(
+                cardColor, textColor, iconColor, primaryColor),
 
             // فلتر نشط
             if (_selectedFilters.isNotEmpty || _searchQuery.isNotEmpty)
@@ -494,7 +530,13 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       ),
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          if (index == 2) {
+            Get.to(() => const BookingsListScreen());
+          } else {
+            setState(() => _currentIndex = index);
+          }
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -570,6 +612,101 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClientProfileCard(
+      Color cardColor, Color textColor, Color iconColor, Color primaryColor) {
+    if (_isLoadingProfile) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 35,
+                  backgroundColor: cardColor,
+                  backgroundImage: currentUser?.photoURL != null
+                      ? NetworkImage(currentUser!.photoURL!)
+                      : null,
+                  child: currentUser?.photoURL == null
+                      ? Icon(Icons.person, color: iconColor, size: 40)
+                      : null,
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_fullName,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: textColor)),
+                      const SizedBox(height: 4),
+                      Text(_email,
+                          style: TextStyle(
+                              color: textColor.withOpacity(0.7), fontSize: 14)),
+                      if (_phone.isNotEmpty)
+                        Text(_phone,
+                            style: TextStyle(
+                                color: textColor.withOpacity(0.7),
+                                fontSize: 14)),
+                      if (_location.isNotEmpty)
+                        Text(_location,
+                            style: TextStyle(
+                                color: textColor.withOpacity(0.7),
+                                fontSize: 14)),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.edit, color: primaryColor),
+                  tooltip: 'تعديل الملف',
+                  onPressed: () async {
+                    await Get.to(() => const ClientEditProfileScreen());
+                    _loadClientProfile();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.bookmark, color: iconColor),
+                const SizedBox(width: 8),
+                Text('عدد الحجوزات: ',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: textColor)),
+                Text('$_bookingCount', style: TextStyle(color: textColor)),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout, color: Colors.red, size: 18),
+                  label: const Text('تسجيل الخروج',
+                      style: TextStyle(color: Colors.red)),
+                ),
+              ],
             ),
           ],
         ),
@@ -831,7 +968,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDark = themeProvider.isDarkMode;
     final iconColor = isDark ? AppColors.lightIcon : AppColors.darkIcon;
-    final textColor = isDark ? AppColors.lightText : AppColors.darkText;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
     return ListTile(
       leading: Icon(icon, color: iconColor),
       title: Text(title, style: TextStyle(color: textColor)),

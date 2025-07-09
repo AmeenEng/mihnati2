@@ -64,6 +64,7 @@ class MyApp extends StatelessWidget {
           bodyLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           bodyMedium: TextStyle(fontSize: 16),
         ),
+        fontFamily: 'Cairo',
       ),
       locale: context.locale,
       supportedLocales: context.supportedLocales,

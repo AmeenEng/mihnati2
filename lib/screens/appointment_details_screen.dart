@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:mihnati2/Components/theme/theme_provider.dart';
 import 'package:mihnati2/Components/theme/app_colors.dart';
 import 'package:mihnati2/common/models/appointment_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AppointmentDetailsScreen extends StatelessWidget {
   final AppointmentModel appointment;
@@ -119,9 +121,9 @@ class AppointmentDetailsScreen extends StatelessWidget {
                 if (appointment.status != 'ملغاة')
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        Get.back();
-                        Get.snackbar('تم الإلغاء', 'تم إلغاء الموعد بنجاح');
+                      onPressed: () async {
+                        await _updateAppointmentStatus(
+                            context, appointment, 'ملغاة');
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
@@ -137,9 +139,9 @@ class AppointmentDetailsScreen extends StatelessWidget {
                 if (appointment.status != 'مؤكدة')
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        Get.back();
-                        Get.snackbar('تم التأكيد', 'تم تأكيد الموعد بنجاح');
+                      onPressed: () async {
+                        await _updateAppointmentStatus(
+                            context, appointment, 'مؤكدة');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
@@ -149,6 +151,45 @@ class AppointmentDetailsScreen extends StatelessWidget {
                     ),
                   ),
               ],
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                label: const Text('حذف الموعد',
+                    style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                ),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('تأكيد الحذف'),
+                      content: const Text(
+                          'هل أنت متأكد أنك تريد حذف هذا الموعد نهائيًا؟'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('إلغاء'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                          child: const Text('حذف',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await _deleteAppointment(context, appointment);
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -212,5 +253,67 @@ class AppointmentDetailsScreen extends StatelessWidget {
   Future<void> _sendSms(String phoneNumber) async {
     final Uri launchUri = Uri(scheme: 'sms', path: phoneNumber);
     if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
+  }
+
+  Future<void> _updateAppointmentStatus(BuildContext context,
+      AppointmentModel appointment, String newStatus) async {
+    final firestore = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
+    try {
+      // تحديث حالة الموعد
+      await firestore
+          .collection('bookings')
+          .doc(appointment.id)
+          .update({'status': newStatus});
+      // إرسال إشعار للعميل
+      final notification = {
+        'title': newStatus == 'ملغاة' ? 'تم إلغاء الموعد' : 'تم تأكيد الموعد',
+        'body': newStatus == 'ملغاة'
+            ? 'تم إلغاء موعدك مع المهني بواسطة ${user?.displayName ?? 'المهني'}'
+            : 'تم تأكيد موعدك مع المهني بواسطة ${user?.displayName ?? 'المهني'}',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'type': 'appointment',
+        'appointmentId': appointment.id,
+        'status': newStatus,
+      };
+      await firestore
+          .collection('users')
+          .doc(appointment.clientId)
+          .collection('notifications')
+          .add(notification);
+      // إظهار رسالة
+      Get.back();
+      Get.snackbar(
+        newStatus == 'ملغاة' ? 'تم الإلغاء' : 'تم التأكيد',
+        newStatus == 'ملغاة'
+            ? 'تم إلغاء الموعد بنجاح'
+            : 'تم تأكيد الموعد بنجاح',
+        backgroundColor:
+            newStatus == 'ملغاة' ? Colors.red.shade100 : Colors.green.shade100,
+        colorText: Colors.black,
+      );
+    } catch (e) {
+      print('Error updating appointment status: $e');
+      Get.snackbar('خطأ', 'حدث خطأ أثناء تحديث حالة الموعد: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  Future<void> _deleteAppointment(
+      BuildContext context, AppointmentModel appointment) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(appointment.id)
+          .delete();
+      Get.back();
+      Get.snackbar('تم الحذف', 'تم حذف الموعد بنجاح',
+          backgroundColor: Colors.green.shade100, colorText: Colors.black);
+    } catch (e) {
+      print('Error deleting appointment: $e');
+      Get.snackbar('خطأ', 'حدث خطأ أثناء حذف الموعد: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
 }

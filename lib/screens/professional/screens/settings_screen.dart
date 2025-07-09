@@ -128,16 +128,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             iconColor: iconColor,
             textColor: textColor,
           ),
-          SwitchListTile(
-            title: Text('وضع الإجازة', style: TextStyle(color: textColor)),
-            secondary: Icon(Icons.beach_access, color: iconColor),
-            value: _vacationMode,
-            onChanged: (value) {
-              setState(() => _vacationMode = value);
-              _updateSetting('vacationMode', value);
-            },
-            activeColor: primaryColor,
-          ),
 
           // إعدادات التطبيق
           const SizedBox(height: 20),
@@ -222,6 +212,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.description,
             title: 'شروط الاستخدام',
             onTap: () => Get.toNamed('/terms'),
+            iconColor: iconColor,
+            textColor: textColor,
+          ),
+          _buildSettingItem(
+            icon: Icons.info_outline,
+            title: 'حول التطبيق',
+            onTap: () => Get.toNamed('/about'),
             iconColor: iconColor,
             textColor: textColor,
           ),

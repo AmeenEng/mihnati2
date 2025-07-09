@@ -13,6 +13,7 @@ class BookingModel {
   final String address;
   final String notes;
   final String status;
+  final double price;
 
   BookingModel({
     required this.id,
@@ -27,6 +28,7 @@ class BookingModel {
     required this.address,
     required this.notes,
     required this.status,
+    required this.price,
   });
 
   factory BookingModel.fromFirestore(DocumentSnapshot doc) {
@@ -44,6 +46,7 @@ class BookingModel {
       address: data['address'] ?? '',
       notes: data['notes'] ?? '',
       status: data['status'] ?? 'pending',
+      price: (data['price'] ?? 0.0).toDouble(),
     );
   }
 }

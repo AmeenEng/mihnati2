@@ -101,6 +101,41 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
     }
   }
 
+  void _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد حذف الحساب'),
+        content: const Text(
+            'هل أنت متأكد أنك تريد حذف حسابك نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      setState(() => _isLoading = true);
+      // حذف مستند المستخدم من Firestore
+      await _firestore.collection('users').doc(_currentUser.uid).delete();
+      // حذف المستخدم من Firebase Auth
+      await _currentUser.delete();
+      Get.offAllNamed('/login');
+      Get.snackbar('تم', 'تم حذف الحساب بنجاح');
+    } catch (e) {
+      setState(() => _isLoading = false);
+      Get.snackbar('خطأ', 'حدث خطأ أثناء حذف الحساب: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -213,6 +248,20 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
                   _buildProfileItem(Icons.logout, 'تسجيل الخروج', _logout,
                       textColor, iconColor,
                       isLogout: true),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(45),
+                      ),
+                      icon: const Icon(Icons.delete_forever),
+                      label: const Text('حذف الحساب'),
+                      onPressed: _deleteAccount,
+                    ),
+                  ),
                 ],
               ),
             ),

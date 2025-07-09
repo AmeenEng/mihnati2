@@ -8,6 +8,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/auth/verify_email_screen.dart';
 import 'Onboarding/onboarding_view.dart';
 import 'screens/profile_screen.dart';
+import 'screens/about_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String clientHome = '/clientHome';
   static const String completeProfile = '/completeProfile';
   static const String profile = '/profile';
+  static const String about = '/about';
 
   static final routes = [
     GetPage(
@@ -56,6 +58,10 @@ class AppRoutes {
     GetPage(
       name: profile,
       page: () => const ProfileScreen(),
+    ),
+    GetPage(
+      name: about,
+      page: () => const AboutScreen(),
     ),
   ];
 }

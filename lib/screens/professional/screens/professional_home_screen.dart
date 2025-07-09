@@ -18,6 +18,10 @@ import 'package:mihnati2/screens/professional/widgets/today_appointments.dart';
 import 'package:mihnati2/Components/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:mihnati2/Components/theme/app_colors.dart';
+import 'package:mihnati2/screens/professional/screens/professional_all_appointments_screen.dart';
+import 'package:mihnati2/screens/professional/screens/professional_my_services_screen.dart';
+import 'package:mihnati2/screens/about_screen.dart';
+import 'package:mihnati2/screens/professional/screens/help_support_screen.dart';
 
 class ProfessionalHomeScreen extends StatefulWidget {
   const ProfessionalHomeScreen({super.key});
@@ -31,6 +35,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
   final _firestore = FirebaseFirestore.instance;
   int _currentIndex = 0;
   int Appointments = 0;
+  int dailyAppointments = 0;
   int _completedJobs = 0;
   double _rating = 0.0;
   bool _isLoading = true;
@@ -60,17 +65,16 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
       if (uid == null) return;
 
       final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
-      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      final todayStr =
+          "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
       final query = _firestore
           .collection('bookings')
           .where('professionalId', isEqualTo: uid)
-          .where('date', isGreaterThanOrEqualTo: startOfDay)
-          .where('date', isLessThanOrEqualTo: endOfDay);
+          .where('date', isEqualTo: todayStr);
 
       final snapshot = await query.get();
-      setState(() => Appointments = snapshot.docs.length);
+      setState(() => dailyAppointments = snapshot.docs.length);
     } catch (e) {
       print('Error loading appointments count: $e');
     }
@@ -566,14 +570,14 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             // بطاقة الأداء
             ProfessionalPerformanceCard(
               completedJobs: _completedJobs,
-              dailyAppointments: Appointments,
+              dailyAppointments: dailyAppointments,
               rating: _rating,
             ),
 
             // مواعيد اليوم
             SectionHeader(
               title: 'مواعيد اليوم',
-              onSeeAll: () => Get.toNamed('/appointments'),
+              onSeeAll: () => Get.to(ProfessionalAllAppointmentsScreen()),
               textColor: textColor,
             ),
             TodayAppointments(
@@ -611,7 +615,15 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
       ),
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) async {
+          if (index == 1) {
+            await Get.to(() => const ProfessionalAllAppointmentsScreen());
+          } else if (index == 2) {
+            await Get.to(() => const ProfessionalMyServicesScreen());
+          } else {
+            setState(() => _currentIndex = index);
+          }
+        },
         backgroundColor: primaryColor,
         items: [
           BottomNavigationBarItem(
@@ -623,8 +635,8 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
             label: 'المواعيد',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assessment, color: iconColor),
-            label: 'الإحصائيات',
+            icon: Icon(Icons.home_repair_service, color: iconColor),
+            label: 'خدماتي',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person, color: iconColor),
@@ -799,20 +811,20 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
                 iconColor: iconColor,
                 textColor: textColor),
             _buildDrawerItem(
-                icon: Icons.help,
-                title: 'مساعدة',
-                onTap: () {
-                  Get.back();
-                  Get.toNamed('/help');
-                },
-                iconColor: iconColor,
-                textColor: textColor),
-            _buildDrawerItem(
                 icon: Icons.info,
                 title: 'حول التطبيق',
                 onTap: () {
                   Get.back();
-                  Get.toNamed('/about');
+                  Get.to(AboutScreen());
+                },
+                iconColor: iconColor,
+                textColor: textColor),
+            _buildDrawerItem(
+                icon: Icons.support_agent,
+                title: 'المساعدة والدعم',
+                onTap: () {
+                  Get.back();
+                  Get.to(const HelpSupportScreen());
                 },
                 iconColor: iconColor,
                 textColor: textColor),
