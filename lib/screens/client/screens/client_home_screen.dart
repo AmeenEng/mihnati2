@@ -8,10 +8,12 @@ import 'package:mihnati2/common/models/professional_model.dart';
 import 'package:mihnati2/common/models/booking_model.dart';
 import 'package:mihnati2/common/widgets/section_header.dart';
 import 'package:mihnati2/common/widgets/custom_bottom_nav.dart';
+import 'package:mihnati2/screens/about_screen.dart';
 import 'package:mihnati2/screens/client/screens/bookings_list_screen.dart';
 import 'package:mihnati2/screens/client/screens/professional_details_screen.dart';
 import 'package:mihnati2/screens/client/widgets/service_card.dart';
 import 'package:mihnati2/screens/client/widgets/professional_card.dart';
+import 'package:mihnati2/screens/help_support_screen.dart';
 import 'package:mihnati2/screens/profile_screen.dart';
 import 'package:mihnati2/screens/service_details_screen.dart';
 import 'package:mihnati2/screens/booking_screen.dart';
@@ -352,7 +354,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               title: 'المساعدة والدعم',
               onTap: () {
                 Navigator.pop(context);
-                Get.toNamed('/support');
+                Get.to(HelpSupportScreen());
               },
             ),
             _buildDrawerItem(
@@ -360,7 +362,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               title: 'عن التطبيق',
               onTap: () {
                 Navigator.pop(context);
-                Get.toNamed('/about');
+                Get.to(AboutScreen());
               },
             ),
 

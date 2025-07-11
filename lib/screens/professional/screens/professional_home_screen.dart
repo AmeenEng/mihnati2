@@ -21,7 +21,7 @@ import 'package:mihnati2/Components/theme/app_colors.dart';
 import 'package:mihnati2/screens/professional/screens/professional_all_appointments_screen.dart';
 import 'package:mihnati2/screens/professional/screens/professional_my_services_screen.dart';
 import 'package:mihnati2/screens/about_screen.dart';
-import 'package:mihnati2/screens/professional/screens/help_support_screen.dart';
+import 'package:mihnati2/screens/help_support_screen.dart';
 
 class ProfessionalHomeScreen extends StatefulWidget {
   const ProfessionalHomeScreen({super.key});
@@ -74,7 +74,9 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
           .where('date', isEqualTo: todayStr);
 
       final snapshot = await query.get();
-      setState(() => dailyAppointments = snapshot.docs.length);
+      if (mounted) {
+        setState(() => dailyAppointments = snapshot.docs.length);
+      }
     } catch (e) {
       print('Error loading appointments count: $e');
     }
@@ -227,7 +229,9 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
       final uid = currentUser?.uid;
       if (uid == null) return;
 
-      setState(() => _reviewsLoading = true);
+      if (mounted) {
+        setState(() => _reviewsLoading = true);
+      }
 
       final collectionRef = _firestore.collection('reviews');
       final query = collectionRef
@@ -280,12 +284,16 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
       Get.snackbar("خطأ", errorMessage,
           backgroundColor: Colors.red, colorText: Colors.white);
 
-      setState(() => _reviewsLoading = false);
+      if (mounted) {
+        setState(() => _reviewsLoading = false);
+      }
     } catch (e) {
       print('Unexpected error: $e');
       Get.snackbar("خطأ", "حدث خطأ غير متوقع في تحميل التعليقات",
           backgroundColor: Colors.red, colorText: Colors.white);
-      setState(() => _reviewsLoading = false);
+      if (mounted) {
+        setState(() => _reviewsLoading = false);
+      }
     }
   }
 
@@ -312,12 +320,16 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
   }
 
   Future<void> _loadAllData() async {
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
     await Future.wait([
       _loadProfessionalStats(),
       _loadRatings(),
     ]); // تم إزالة _loadMonthlyStats
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadProfessionalStats() async {
@@ -471,10 +483,12 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  setState(() {
-                    _isLoading = true;
-                    _hasError = false;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = true;
+                      _hasError = false;
+                    });
+                  }
                   await _loadAllData();
                 },
                 style: ElevatedButton.styleFrom(
